@@ -1,4 +1,5 @@
 import { Schema, VirtualType } from 'mongoose';
+
 import * as Av from './avro-helpers';
 
 const UUID_TEST = /^(uuid|v4)/;

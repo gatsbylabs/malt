@@ -6,6 +6,10 @@ Support for the following logical types:
 - uuid
 - date
 
+## Mongoose Sepcifics
+
+Mongoose fields that are not required or do not have a validator are unioned with `null`.
+
 ## Caveats
 
 - Mongoose discriminates are turned into Avro union types.
