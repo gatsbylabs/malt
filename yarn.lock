@@ -1730,6 +1730,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^16":
+  version: 16.11.26
+  resolution: "@types/node@npm:16.11.26"
+  checksum: 57757caaba3f0d95de82198cb276a1002c49b710108c932a1d02d7c91ff2fa57cfe2dd19fde60853b6dd90b0964b3cf35557981d2628e20aed6a909057aedfe6
+  languageName: node
+  linkType: hard
+
 "@types/prettier@npm:^2.1.5":
   version: 2.4.2
   resolution: "@types/prettier@npm:2.4.2"
@@ -4876,6 +4883,7 @@ __metadata:
     "@babel/preset-env": ^7.16.5
     "@babel/preset-typescript": ^7.16.5
     "@types/jest": ^27.0.3
+    "@types/node": ^16
     "@typescript-eslint/eslint-plugin": ^5.7.0
     "@typescript-eslint/parser": ^5.7.0
     babel-jest: ^27.4.5
