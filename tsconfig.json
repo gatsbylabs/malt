@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "declaration": true,
     "outDir": "./dist",
-    "isolatedModules": true,
+    // "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
