@@ -1,2 +1,2 @@
-import { avroParser } from './parser';
+import { avroParser } from "./parser";
 export default avroParser;

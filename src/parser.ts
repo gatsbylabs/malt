@@ -1,6 +1,6 @@
-import { Schema, VirtualType } from 'mongoose';
+import { Schema, VirtualType } from "mongoose";
 
-import * as Av from './avro-helpers';
+import * as Av from "./avro-helpers";
 
 const UUID_TEST = /^(uuid|v4)/;
 
@@ -13,7 +13,7 @@ type Tree = Record<string, any>;
  * @returns
  */
 const checkRequired = (base: any, required = false) =>
-  !required ? { ...base, type: [base.type, 'null'] } : base;
+  !required ? { ...base, type: [base.type, "null"] } : base;
 
 /**
  * Parse Avro
@@ -24,7 +24,7 @@ const checkRequired = (base: any, required = false) =>
 export const avroParser = (
   schema: Schema,
   name: string,
-  namespace = 'mongoose'
+  namespace = "mongoose"
 ) => {
   const avp = new AvroParser(schema, name, namespace);
   return avp.parse();
@@ -48,7 +48,7 @@ export class AvroParser {
   parse() {
     const avRecord: any[] = [];
     const tree: Tree =
-      'tree' in this.schema ? (this.schema as any).tree : this.schema;
+      "tree" in this.schema ? (this.schema as any).tree : this.schema;
 
     Object.entries(tree).forEach(([fieldName, field]) => {
       const avField = this.parseField(field, fieldName);
@@ -74,35 +74,36 @@ export class AvroParser {
 
     // some fields we know will always exist
     // fields that will always be required
-    const isRequired = field.required === true ||
+    const isRequired =
+      field.required === true ||
       (Array.isArray(field.required) && field.required.includes(true)) ||
-      'auto' in field ||
-      'default' in field ||
+      "auto" in field ||
+      "default" in field ||
       // names that will always be required
-      name === 'createdAt' ||
-      name === 'updatedAt' ||
+      name === "createdAt" ||
+      name === "updatedAt" ||
       forceRequire;
 
     // we know it's a primitive
-    if (typeof field === 'function') {
+    if (typeof field === "function") {
       // force require if parsing primitive in array
       return checkRequired(this.parsePrimitive(field, name), isRequired);
     }
     // primitive array
     if (Array.isArray(field)) {
       const parsed = this.parseField(field[0], name, true);
-      const type = parsed.type !== 'record' ? parsed.type : parsed;
+      const type = parsed.type !== "record" ? parsed.type : parsed;
       return checkRequired(Av.Array(type, name), isRequired);
     }
 
     // nested field that looks like {type: String}
-    if (typeof field === 'object') {
+    if (typeof field === "object") {
       // empty objects should be treated like Mixed or Object
       if (Object.keys(field).length === 0) {
-        return Av.Map(['float', 'string', 'null', 'boolean'], name);
+        return Av.Map(["float", "string", "null", "boolean"], name);
       }
       // check if ObjectId
-      if (field.type === 'ObjectId') {
+      if (field.type === "ObjectId") {
         return checkRequired(Av.String(name), isRequired);
       }
       // array
@@ -111,38 +112,50 @@ export class AvroParser {
         return checkRequired(Av.Array(type, name), isRequired);
       }
 
-      if (typeof field.type === 'function') {
+      if (typeof field.type === "function") {
         // check if enum
-        if ('enum' in field) {
+        if ("enum" in field) {
           return checkRequired(
             Av.Enum(field.enum, name, this.childNamespace),
             isRequired
           );
         }
         // check if map
-        if (field.type.name === 'Map') {
-          const avMapVal = this.parseField(field.of, '', true);
+        if (field.type.name === "Map") {
+          const avMapVal = this.parseField(field.of, "", true);
           return checkRequired(Av.Map(avMapVal.type, name), isRequired);
         }
 
         // is nested primitive
-        const value = checkRequired(this.parsePrimitive(field.type, name), isRequired);
-        if (typeof field.default === 'function' && UUID_TEST.test(field.default.name.toLowerCase())) {
-          value.logicalType = 'uuid';
+        const value = checkRequired(
+          this.parsePrimitive(field.type, name),
+          isRequired
+        );
+        if (
+          typeof field.default === "function" &&
+          UUID_TEST.test(field.default.name.toLowerCase())
+        ) {
+          value.logicalType = "uuid";
         }
         return value;
       }
 
       // nested object
       // array nested object
-      if (typeof field.type === 'object' || !('type' in field)) {
+      if (typeof field.type === "object" || !("type" in field)) {
         // handle discriminators. These are union records
-        if ('discriminators' in field) {
-          const toUnion: any[] = Object.entries(field.discriminators).map(([childName, childSchema]) => {
-            const avp = new AvroParser(childSchema as Schema, childName, `${this.childNamespace}.${name}`);
-            return avp.parse();
-          });
-          if (!isRequired) toUnion.push('null');
+        if ("discriminators" in field) {
+          const toUnion: any[] = Object.entries(field.discriminators).map(
+            ([childName, childSchema]) => {
+              const avp = new AvroParser(
+                childSchema as Schema,
+                childName,
+                `${this.childNamespace}.${name}`
+              );
+              return avp.parse();
+            }
+          );
+          if (!isRequired) toUnion.push("null");
           return Av.Union(toUnion, name);
         } else {
           // handle regular nested objects
@@ -167,19 +180,19 @@ export class AvroParser {
    * @param name
    * @returns
    */
-  parsePrimitive(field: Function, name: string) {
+  parsePrimitive(field: (...args: any[]) => any, name: string) {
     switch (field.name) {
-      case 'String':
+      case "String":
         return Av.String(name);
-      case 'Number':
+      case "Number":
         return Av.Number(name);
-      case 'Boolean':
+      case "Boolean":
         return Av.Boolean(name);
-      case 'Date':
+      case "Date":
         return Av.Date(name);
-      case 'Object':
-      case 'Mixed':
-        return Av.Map(['float', 'string', 'null', 'boolean'], name);
+      case "Object":
+      case "Mixed":
+        return Av.Map(["float", "string", "null", "boolean"], name);
       default:
         throw new TypeError(`${field} is not a primitive`);
     }

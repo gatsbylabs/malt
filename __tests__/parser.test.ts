@@ -1,6 +1,6 @@
-import { Schema } from 'mongoose';
+import { Schema } from "mongoose";
 
-import { avroParser } from '../src/parser';
+import { avroParser } from "../src/parser";
 
 /* const baseSchema = new Schema({
   somebasevalu: Boolean
@@ -74,166 +74,163 @@ avsc.Type.forSchema(avp as any);
 const ts = avroToTypeScript(avp as any, { logicalTypes: { date: 'Date' }, nullValue: 'undefined' });
 console.log(ts); */
 
-
-describe('Avro Parser', () => {
-  test('String', () => {
+describe("Avro Parser", () => {
+  test("String", () => {
     const testSchema = new Schema({
       str: String,
-      strType: {type: String},
-      strRequired: {type: String, required: true },
+      strType: { type: String },
+      strRequired: { type: String, required: true },
     });
 
-    const avroSchema = avroParser(testSchema, 'Test');
+    const avroSchema = avroParser(testSchema, "Test");
 
     expect(avroSchema).toEqual({
-      namespace: 'mongoose',
-      name: 'Test',
-      type: 'record',
+      namespace: "mongoose",
+      name: "Test",
+      type: "record",
       fields: [
-        { name: 'str', type: ['string', 'null']},
-        { name: 'strType', type: ['string', 'null']},
-        { name: 'strRequired', type: 'string'},
-        { name: '_id', type: 'string'}
-      ]
-    })
+        { name: "str", type: ["string", "null"] },
+        { name: "strType", type: ["string", "null"] },
+        { name: "strRequired", type: "string" },
+        { name: "_id", type: "string" },
+      ],
+    });
   });
 
-  test('Number', () => {
+  test("Number", () => {
     const testSchema = new Schema({
       n: Number,
-      nT: {type: Number},
-      nR: {type: Number, required: true },
+      nT: { type: Number },
+      nR: { type: Number, required: true },
     });
 
-    const avroSchema = avroParser(testSchema, 'Test');
+    const avroSchema = avroParser(testSchema, "Test");
 
     expect(avroSchema).toEqual({
-      namespace: 'mongoose',
-      name: 'Test',
-      type: 'record',
+      namespace: "mongoose",
+      name: "Test",
+      type: "record",
       fields: [
-        { name: 'n', type: ['float', 'null']},
-        { name: 'nT', type: ['float', 'null']},
-        { name: 'nR', type: 'float'},
-        { name: '_id', type: 'string'}
-      ]
-    })
+        { name: "n", type: ["float", "null"] },
+        { name: "nT", type: ["float", "null"] },
+        { name: "nR", type: "float" },
+        { name: "_id", type: "string" },
+      ],
+    });
   });
 
-  test('Boolean', () => {
+  test("Boolean", () => {
     const testSchema = new Schema({
       b: Boolean,
-      bT: {type: Boolean},
-      bR: {type: Boolean, required: true},
+      bT: { type: Boolean },
+      bR: { type: Boolean, required: true },
     });
 
-    const avroSchema = avroParser(testSchema, 'Test');
+    const avroSchema = avroParser(testSchema, "Test");
 
     expect(avroSchema).toEqual({
-      namespace: 'mongoose',
-      name: 'Test',
-      type: 'record',
+      namespace: "mongoose",
+      name: "Test",
+      type: "record",
       fields: [
-        { name: 'b', type: ['boolean', 'null']},
-        { name: 'bT', type: ['boolean', 'null']},
-        { name: 'bR', type: 'boolean'},
-        { name: '_id', type: 'string'}
-      ]
+        { name: "b", type: ["boolean", "null"] },
+        { name: "bT", type: ["boolean", "null"] },
+        { name: "bR", type: "boolean" },
+        { name: "_id", type: "string" },
+      ],
     });
-
   });
 
-  test('Logical type: date', () => {
-    const testSchema = new Schema({
-      d: Date,
-      dT: {type: Date},
-      dR: {type: Date, required: true}
-    }, { timestamps: true });
+  test("Logical type: date", () => {
+    const testSchema = new Schema(
+      {
+        d: Date,
+        dT: { type: Date },
+        dR: { type: Date, required: true },
+      },
+      { timestamps: true }
+    );
 
-    const avroSchema = avroParser(testSchema, 'Test');
+    const avroSchema = avroParser(testSchema, "Test");
 
     expect(avroSchema).toEqual({
-      namespace: 'mongoose',
-      name: 'Test',
-      type: 'record',
+      namespace: "mongoose",
+      name: "Test",
+      type: "record",
       fields: [
-        { name: 'd', type: [{type: 'int', logicalType: 'date'}, 'null']},
-        { name: 'dT', type: [{type: 'int', logicalType: 'date'}, 'null']},
-        { name: 'dR', type: {type: 'int', logicalType: 'date'}},
-        { name: '_id', type: 'string'},
-        {name: 'updatedAt', type: {type: 'int', logicalType: 'date'}},
-        {name: 'createdAt', type: {type: 'int', logicalType: 'date'}}
-      ]
+        { name: "d", type: [{ type: "int", logicalType: "date" }, "null"] },
+        { name: "dT", type: [{ type: "int", logicalType: "date" }, "null"] },
+        { name: "dR", type: { type: "int", logicalType: "date" } },
+        { name: "_id", type: "string" },
+        { name: "updatedAt", type: { type: "int", logicalType: "date" } },
+        { name: "createdAt", type: { type: "int", logicalType: "date" } },
+      ],
     });
-
   });
 
-  test('Enum', () => {
+  test("Enum", () => {
     const testSchema = new Schema({
-      enum: { type: String, enum: ['one', 'two', 'three'] },
+      enum: { type: String, enum: ["one", "two", "three"] },
     });
 
-    const avroSchema = avroParser(testSchema, 'Test');
+    const avroSchema = avroParser(testSchema, "Test");
 
     expect(avroSchema).toEqual({
-      namespace: 'mongoose',
-      name: 'Test',
-      type: 'record',
+      namespace: "mongoose",
+      name: "Test",
+      type: "record",
       fields: [
-        {name: 'enum', 
-          type: [{
-            name: 'enum',
-            type: 'enum',
-            symbols: [
-              'one',
-              'two',
-              'three'
-            ],
-            "namespace": 'mongoose.Test'
-          }, "null"
-        ]},
-        { name: '_id', type: 'string'}
-      ]
-    })
-  })
-  
-  test('Record', () => {
+        {
+          name: "enum",
+          type: [
+            {
+              name: "enum",
+              type: "enum",
+              symbols: ["one", "two", "three"],
+              namespace: "mongoose.Test",
+            },
+            "null",
+          ],
+        },
+        { name: "_id", type: "string" },
+      ],
+    });
+  });
+
+  test("Record", () => {
     const testSchema = new Schema({
       apple: String,
-      count: { type: Number }
+      count: { type: Number },
     });
 
-    const avroSchema = avroParser(testSchema, 'Test');
+    const avroSchema = avroParser(testSchema, "Test");
 
     expect(avroSchema).toEqual({
-      namespace: 'mongoose',
-      name: 'Test',
-      type: 'record',
+      namespace: "mongoose",
+      name: "Test",
+      type: "record",
       fields: [
-        { name: 'apple', type: ['string', 'null']},
-        { name: 'count', type: ['float', 'null']},
-        { name: '_id', type: 'string'}
-      ]
+        { name: "apple", type: ["string", "null"] },
+        { name: "count", type: ["float", "null"] },
+        { name: "_id", type: "string" },
+      ],
     });
   });
 
-
-  test('Logical type: uuid', () => {
-    const uuid = () => 'uuid';
+  test("Logical type: uuid", () => {
+    const uuid = () => "uuid";
 
     const testSchema = new Schema({
-        _id: { type: String, default: uuid },
-      });
+      _id: { type: String, default: uuid },
+    });
 
-    const avroSchema = avroParser(testSchema, 'Test');
+    const avroSchema = avroParser(testSchema, "Test");
 
     expect(avroSchema).toEqual({
-      namespace: 'mongoose',
-      name: 'Test',
-      type: 'record',
-      fields: [ { name: '_id', type: 'string', logicalType: 'uuid' } ]
+      namespace: "mongoose",
+      name: "Test",
+      type: "record",
+      fields: [{ name: "_id", type: "string", logicalType: "uuid" }],
     });
   });
-
-
 });

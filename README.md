@@ -3,6 +3,7 @@
 Support for all Avro data types.
 
 Support for the following logical types:
+
 - uuid
 - date
 
