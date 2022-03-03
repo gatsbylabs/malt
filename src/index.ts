@@ -188,7 +188,6 @@ function processIdentifer(node: ts.Identifier) {
 function processObject(root: ts.ObjectLiteralExpression) {
   let type: ReturnType<typeof processIdentifer>;
   let required = false;
-  let mapValueType: undefined | string;
   root.forEachChild((node) => {
     if (ts.isPropertyAssignment(node)) {
       const keyNode = node.getChildAt(0);

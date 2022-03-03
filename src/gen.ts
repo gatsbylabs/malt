@@ -8,10 +8,10 @@ export function getMap(valueNode?: ts.TypeNode) {
   if (!valueNode) {
     valueNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
   }
-  ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("Map"), [
-    ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
-    valueNode,
-  ]);
+  return ts.factory.createTypeReferenceNode(
+    ts.factory.createIdentifier("Map"),
+    [ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword), valueNode]
+  );
 }
 
 export function genTypeRef(s: string) {
