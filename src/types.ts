@@ -21,3 +21,22 @@ export interface MongooseTypeAst {
   enumTypes?: ts.Type[];
   required: boolean;
 }
+
+export const M_TYPES = [
+  "Boolean",
+  "Buffer",
+  "Date",
+  "Decimal128",
+  "Map",
+  "Mixed",
+  "Number",
+  "ObjectId",
+  "String",
+] as const;
+
+export type MType = typeof M_TYPES[number];
+
+export interface ParsedField {
+  nodes: [ts.TypeNode, ts.Node[]];
+  optional: boolean;
+}

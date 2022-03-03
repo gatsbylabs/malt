@@ -1,4 +1,4 @@
-import mongoose, { Schema, ObjectId, Decimal128 } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 mongoose.Schema.Types;
 
 // https://mongoosejs.com/docs/schematypes.html
@@ -60,6 +60,8 @@ const accessedSchema = new mongoose.Schema({
     type: Map,
     of: String,
   },
+  required: { type: String, required: true },
+  enums: { type: String, enum: ["A", "B"] },
 });
 
 export const Accessed = mongoose.model("Accessed", accessedSchema);

@@ -10,6 +10,7 @@
     "@babel/preset-env": "^7.16.5",
     "@babel/preset-typescript": "^7.16.5",
     "@types/jest": "^27.0.3",
+    "@types/node": "^16",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
     "@typescript-eslint/parser": "^5.7.0",
     "babel-jest": "^27.4.5",
@@ -21,7 +22,7 @@
     "mongoose": "^6.1.2",
     "pinst": ">=2",
     "prettier": "^2.5.1",
-    "@types/node": "^16"
+    "prettier-plugin-organize-imports": "^2.3.4"
   },
   "scripts": {
     "tsc": "tsc",
