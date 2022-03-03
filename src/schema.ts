@@ -27,14 +27,14 @@ function isSchemaObjectNode(declaration: ts.VariableDeclaration) {
           if (expressChild.text === "Schema") {
             return true;
           }
-        } else if (ts.isPropertyAccessExpression(declarationChild)) {
+        } else if (ts.isPropertyAccessExpression(expressChild)) {
           const mongooseId = expressChild.getChildAt(0);
           const schemaId = expressChild.getChildAt(2);
           if (
             ts.isIdentifier(mongooseId) &&
             ts.isIdentifier(schemaId) &&
             mongooseId.text === "mongoose" &&
-            schemaId.text === "model"
+            schemaId.text === "Schema"
           ) {
             return true;
           }

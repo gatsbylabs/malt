@@ -1,45 +1,25 @@
 import { TsNodeError } from "error";
-import * as Field from "field";
-import fs from "fs";
+import { genMImport, genMTypeRef, genPrimitive, genTypeRef } from "gen";
 import * as Schema from "schema";
 import ts from "typescript";
 import { createTopLevelVariableMap } from "variableMap";
+
+interface MField {
+  name: ts.Identifier;
+  value:
+    | ts.Identifier
+    | ts.ObjectLiteralExpression
+    | ts.ArrayLiteralExpression
+    | ts.PropertyAccessExpression;
+}
+
 const DEBUG = true;
-
-/* function parseObjectNode(node: ts.Node) {
-  const mongooseFields: MongooseAstField[] = [];
-  node.forEachChild((node) => {
-    if (node.kind === ts.SyntaxKind.PropertyAssignment) {
-      const nameNode = node.getChildAt(0);
-      const typeNode = node.getChildAt(2);
-
-      if (
-        typeNode.kind !== ts.SyntaxKind.ObjectLiteralExpression &&
-        typeNode.kind !== ts.SyntaxKind.Identifier &&
-        typeNode.kind !== ts.SyntaxKind.PropertyAccessExpression &&
-        typeNode.kind !== ts.SyntaxKind.ArrayLiteralExpression
-      ) {
-        throw new TsNodeError(
-          `Key \`${nameNode.getText()}\` has unsupported syntax kind '${
-            ts.SyntaxKind[typeNode.kind]
-          }'`,
-          typeNode
-        );
-      }
-
-      mongooseFields.push({
-        name: nameNode,
-        type: typeNode,
-      });
-    }
-  });
-  return mongooseFields;
-} */
 
 (async () => {
   const fileNames = process.argv.slice(2);
   const program = ts.createProgram(fileNames, {});
   const checker = program.getTypeChecker();
+  const printer = ts.createPrinter();
 
   await Promise.all(
     fileNames.map(async (fileName) => {
@@ -49,22 +29,22 @@ const DEBUG = true;
       try {
         const variableMap = createTopLevelVariableMap(sourceFile);
         const schemas = Schema.filterVarMap(variableMap);
-        const schemaObjects = Schema.mapToObject(schemas);
 
-        schemaObjects.forEach((val) => {
-          /* console.log(
-            val.name,
-            ":",
-            val.valueNode.getText(),
-            val.optionNode?.getText(),
-            "\n"
-          ); */
-
-          ts.forEachChild(val.valueNode, (node) => {
-            const field = Field.extract(node, checker);
-            console.log(field);
-          });
+        const ifaceGen: ts.Node[] = [];
+        schemas.forEach((s) => {
+          const node = findObjectLiteral(s.node, checker);
+          if (node) {
+            const objectMap = traverseObject(node);
+            ifaceGen.push(createInterface(s.name, objectMap));
+          }
         });
+
+        const nodes = ts.factory.createNodeArray([genMImport(), ...ifaceGen]);
+
+        console.log(
+          "/* eslint-disable */\n" +
+            printer.printList(ts.ListFormat.MultiLine, nodes, sourceFile)
+        );
       } catch (e) {
         if (e instanceof TsNodeError) {
           const { line, character } = sourceFile.getLineAndCharacterOfPosition(
@@ -86,3 +66,153 @@ const DEBUG = true;
     })
   );
 })();
+
+function findObjectLiteral(
+  node: ts.Node,
+  checker: ts.TypeChecker
+): ts.ObjectLiteralExpression | null {
+  if (ts.isObjectLiteralExpression(node)) {
+    return node;
+  }
+
+  for (const child of node.getChildren()) {
+    const found = findObjectLiteral(child, checker);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
+}
+
+function traverseObject(node: ts.ObjectLiteralExpression) {
+  const map = new Map<string, MField>();
+  node.forEachChild((child) => {
+    if (ts.isPropertyAssignment(child)) {
+      const importantChildren: ts.Node[] = [];
+      child.forEachChild((id) => {
+        importantChildren.push(id);
+      });
+      if (
+        ts.isIdentifier(importantChildren[0]) &&
+        (ts.isIdentifier(importantChildren[1]) ||
+          ts.isObjectLiteralExpression(importantChildren[1]) ||
+          ts.isArrayLiteralExpression(importantChildren[1]) ||
+          ts.isPropertyAccessExpression(importantChildren[1]))
+      ) {
+        map.set(importantChildren[0].text, {
+          name: importantChildren[0],
+          value: importantChildren[1],
+        });
+      }
+    }
+  });
+  return map;
+}
+
+function createInterface(schemaName: string, map: Map<string, MField>) {
+  const elements: ts.TypeElement[] = [];
+  map.forEach((field, name) => {
+    elements.push(
+      ts.factory.createPropertySignature(
+        undefined,
+        name,
+        undefined,
+        parseField(field.value)
+      )
+    );
+  });
+
+  const iface = ts.factory.createInterfaceDeclaration(
+    undefined,
+    undefined,
+    schemaName,
+    [],
+    undefined,
+    elements
+  );
+  return iface;
+}
+
+function parseField(field: MField["value"]) {
+  if (ts.isIdentifier(field)) {
+    return processIdentifer(field);
+  }
+  if (ts.isPropertyAccessExpression(field)) {
+    const last = field.getChildAt(field.getChildCount() - 1);
+    if (ts.isIdentifier(last)) {
+      return processIdentifer(last);
+    }
+  }
+  if (ts.isArrayLiteralExpression(field)) {
+    const parsedId =
+      field.forEachChild((child) => {
+        if (ts.isIdentifier(child)) {
+          return processIdentifer(child);
+        } else if (ts.isObjectLiteralExpression(child)) {
+          // TODO: processObject
+          console.log("TODO");
+        }
+      }) ?? genPrimitive(ts.SyntaxKind.AnyKeyword);
+
+    return ts.factory.createArrayTypeNode(parsedId);
+  }
+  return genPrimitive(ts.SyntaxKind.AnyKeyword);
+}
+
+function processIdentifer(node: ts.Identifier) {
+  const text = node.text;
+  const ConstructorMap = {
+    String: ts.SyntaxKind.StringKeyword,
+    Number: ts.SyntaxKind.NumberKeyword,
+    Mixed: ts.SyntaxKind.AnyKeyword,
+    Boolean: ts.SyntaxKind.BooleanKeyword,
+  } as const;
+
+  switch (text) {
+    case "String":
+    case "Number":
+    case "Mixed":
+    case "Boolean":
+      return genPrimitive(ConstructorMap[text]);
+    case "ObjectId":
+    case "Decimal128":
+      return genMTypeRef(text);
+    case "Buffer":
+    case "Map": // TODO: need type annotations for map
+    default:
+      return genTypeRef(text);
+  }
+}
+
+function processObject(root: ts.ObjectLiteralExpression) {
+  let type: ReturnType<typeof processIdentifer>;
+  let required = false;
+  root.forEachChild((node) => {
+    if (ts.isPropertyAssignment(node)) {
+      const keyNode = node.getChildAt(0);
+      const valueNode = node.getChildAt(2);
+      if (ts.isIdentifier(keyNode)) {
+        if (keyNode.text === "type") {
+          if (!ts.isIdentifier(valueNode)) {
+            throw new TsNodeError("This type is  not supported", node);
+          }
+          type = processIdentifer(valueNode);
+        } else if (keyNode.text === "required") {
+          if (valueNode.kind === ts.SyntaxKind.TrueKeyword) {
+            required = true;
+          }
+        } else if (keyNode.text === "enum") {
+          if (ts.isArrayLiteralExpression(valueNode)) {
+            // TODO: turn String/Number LIteral into enum factory and return
+          }
+        }
+      }
+    }
+  });
+
+  return {
+    type,
+    required,
+    // enum: enum factory
+  };
+}
