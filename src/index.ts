@@ -1,5 +1,5 @@
 import { TsNodeError } from "error";
-import { genMImport, genMTypeRef, genPrimitive, genTypeRef } from "gen";
+import { genMImport, genMTypeRef, genPrimitive, genTypeRef, getMap } from "gen";
 import * as Schema from "schema";
 import ts from "typescript";
 import { createTopLevelVariableMap } from "variableMap";
@@ -177,8 +177,9 @@ function processIdentifer(node: ts.Identifier) {
     case "ObjectId":
     case "Decimal128":
       return genMTypeRef(text);
-    case "Buffer":
     case "Map": // TODO: need type annotations for map
+      return getMap();
+    case "Buffer":
     default:
       return genTypeRef(text);
   }
@@ -187,6 +188,7 @@ function processIdentifer(node: ts.Identifier) {
 function processObject(root: ts.ObjectLiteralExpression) {
   let type: ReturnType<typeof processIdentifer>;
   let required = false;
+  let mapValueType: undefined | string;
   root.forEachChild((node) => {
     if (ts.isPropertyAssignment(node)) {
       const keyNode = node.getChildAt(0);
@@ -194,7 +196,7 @@ function processObject(root: ts.ObjectLiteralExpression) {
       if (ts.isIdentifier(keyNode)) {
         if (keyNode.text === "type") {
           if (!ts.isIdentifier(valueNode)) {
-            throw new TsNodeError("This type is  not supported", node);
+            throw new TsNodeError("This Node type is  not supported", node);
           }
           type = processIdentifer(valueNode);
         } else if (keyNode.text === "required") {

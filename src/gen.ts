@@ -4,7 +4,26 @@ export function genPrimitive<T extends ts.KeywordTypeSyntaxKind>(kind: T) {
   return ts.factory.createKeywordTypeNode(kind);
 }
 
+export function getMap(valueNode?: ts.TypeNode) {
+  if (!valueNode) {
+    valueNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+  }
+  ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("Map"), [
+    ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+    valueNode,
+  ]);
+}
+
 export function genTypeRef(s: string) {
+  if (s === "Map") {
+    return ts.factory.createTypeReferenceNode(
+      ts.factory.createIdentifier("Map"),
+      [
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+        ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword),
+      ]
+    );
+  }
   return ts.factory.createTypeReferenceNode(ts.factory.createIdentifier(s));
 }
 
