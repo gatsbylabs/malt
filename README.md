@@ -4,12 +4,29 @@ Mongoose Type Generator
 
 Generate TypeScript Interfaces and Enums from [Mongoose](https://github.com/Automattic/mongoose) Schemas.
 
+## Installation
+
+With yarn:
+
+```sh
+yarn install -D malt
+```
+
+With npm:
+
+```sh
+npm install --save-dev malt
+```
+
 ## Usage
 
 Malt can take a directory, list of files, or a combination of both as an input.
+It will recursively search the provided source files for Mongoose schemas.
 
 ```sh
-malt <INPUT>
+malt src/
+malt src/models/myModel.ts
+malt src/models src/otherModels src/myModel.ts
 ```
 
 Having a schema that looks like this:
@@ -101,3 +118,4 @@ export enum Enums {
 - [ ] support string union option for enums
 - [ ] discriminated unions
 - [ ] add comment with text of original schema field configuration
+- [ ] aliased imports of schemas and types
