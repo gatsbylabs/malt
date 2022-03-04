@@ -120,12 +120,14 @@ describe("test type node generators", () => {
             true
           ),
           ts.factory.createIdentifier("Test"),
+          { omitId: false, typeKey: "type" },
           options
         ).flat()
       )
     );
 
     const e = `interface Test {
+    _id?: mongoose.Types.ObjectId | null | undefined;
     enums?: any[] | null | undefined;
     hi?: any | null | undefined;
 }\n`;

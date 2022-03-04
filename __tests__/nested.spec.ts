@@ -18,9 +18,11 @@ describe("nested schemas", () => {
     const e = `// eslint-disable 
 import mongoose from "mongoose";
 interface S {
+    _id?: mongoose.Types.ObjectId | null | undefined;
     name?: Name | null | undefined;
 }
 interface Name {
+    _id?: mongoose.Types.ObjectId | null | undefined;
     stuff?: string | null | undefined;
 }
 `;
@@ -47,12 +49,15 @@ interface Name {
     const e = `// eslint-disable 
 import mongoose from "mongoose";
 interface S {
+    _id?: mongoose.Types.ObjectId | null | undefined;
     name?: Name | null | undefined;
 }
 interface Name {
+    _id?: mongoose.Types.ObjectId | null | undefined;
     name?: Name0 | null | undefined;
 }
 interface Name0 {
+    _id?: mongoose.Types.ObjectId | null | undefined;
     name?: string | null | undefined;
 }
 `;
@@ -80,9 +85,11 @@ interface Name0 {
     const e = `// eslint-disable 
 import mongoose from "mongoose";
 interface S {
+    _id?: mongoose.Types.ObjectId | null | undefined;
     name?: number | null | undefined;
 }
 interface E {
+    _id?: mongoose.Types.ObjectId | null | undefined;
     sigma?: S | null | undefined;
 }
 `;

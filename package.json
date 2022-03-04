@@ -25,10 +25,10 @@
     "prettier-plugin-organize-imports": "^2.3.4"
   },
   "scripts": {
-    "tsc": "tsc",
+    "check": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "prepublish": "tsc",
     "test": "jest",
-    "tsc:test": "tsc -p tsconfig.test.json",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "dev": "node build.cjs && node --enable-source-maps build-dev/bundle.js ./__mocks__/model.ts",

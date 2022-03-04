@@ -1,41 +1,36 @@
 import { parseOptions, processSourceFile } from "../src";
 import { genSourceFile, printArr } from "./helpers";
 
-describe("enums", () => {
-  it("string enum", () => {
+describe("schema options parsing", () => {
+  it("_id: omit id", () => {
     const options = parseOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
     const sourceFile = genSourceFile(`const s = new Schema({
-      name: { type: String, enum: ["A", "B"] }
-    })`);
+      name: String
+    }, { _id: false })`);
     const o = printArr(processSourceFile(sourceFile, options), sourceFile);
     expect(typeof o).toBe("string");
 
     const e = `// eslint-disable 
 import mongoose from "mongoose";
 interface S {
-    _id?: mongoose.Types.ObjectId | null | undefined;
-    name?: Name | null | undefined;
-}
-enum Name {
-    A = "A",
-    B = "B"
+    name?: string | null | undefined;
 }
 `;
 
     expect(o).toBe(e);
   });
 
-  it("number enum", () => {
+  it("typeKey: use a different type key", () => {
     const options = parseOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
     const sourceFile = genSourceFile(`const s = new Schema({
-      name: { type: Number, enum: [100, 200] }
-    })`);
+      name: { $type: String } 
+    }, { typeKey: '$type' })`);
     const o = printArr(processSourceFile(sourceFile, options), sourceFile);
     expect(typeof o).toBe("string");
 
@@ -43,25 +38,21 @@ enum Name {
 import mongoose from "mongoose";
 interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
-    name?: Name | null | undefined;
-}
-enum Name {
-    100 = 100,
-    200 = 200
+    name?: string | null | undefined;
 }
 `;
 
     expect(o).toBe(e);
   });
 
-  it("required enum", () => {
+  it("timestamps: true", () => {
     const options = parseOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
     const sourceFile = genSourceFile(`const s = new Schema({
-      name: { type: Number, enum: [100, 200], required: true }
-    })`);
+      name: { type: String } 
+    }, { timestamps: true })`);
     const o = printArr(processSourceFile(sourceFile, options), sourceFile);
     expect(typeof o).toBe("string");
 
@@ -69,11 +60,9 @@ enum Name {
 import mongoose from "mongoose";
 interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
-    name: Name;
-}
-enum Name {
-    100 = 100,
-    200 = 200
+    name?: string | null | undefined;
+    createdAt?: Date | null | undefined;
+    updatedAt?: Date | null | undefined;
 }
 `;
 

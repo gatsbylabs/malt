@@ -2,8 +2,12 @@ import ts from "typescript";
 import { DEBUG } from "./config";
 import { TsNodeError } from "./error";
 import { findUnusedName } from "./helpers";
-import { createInterface, traverseSchemaObject } from "./processors";
-import { ParsedOptions, TextConvert } from "./types";
+import {
+  cleanMFieldObject,
+  createInterface,
+  traverseObject,
+} from "./processors";
+import { MSchemaOptions, ParsedOptions, TextConvert } from "./types";
 
 /**
  * generate a primitive node
@@ -154,12 +158,14 @@ export function genPropertySignature(
 export function genPropertyInterface(
   root: ts.ObjectLiteralExpression,
   name: ts.Identifier,
+  mOptions: MSchemaOptions,
   options: ParsedOptions
 ) {
   // create a new interface
-  const objectMap = traverseSchemaObject(root);
+  const objectMap = cleanMFieldObject(traverseObject(root));
+
   const interfaceName = findUnusedName(name.text, options.usedNames);
-  const newNodes = createInterface(interfaceName, objectMap, options);
+  const newNodes = createInterface(interfaceName, objectMap, mOptions, options);
   const iface = newNodes[0];
   const ifaceName = iface.forEachChild((node) => {
     if (ts.isIdentifier(node)) return node.text;

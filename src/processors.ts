@@ -22,7 +22,13 @@ import {
   ParsedOptions,
 } from "./types";
 
-function processMOptions(root?: ts.ObjectLiteralExpression): MSchemaOptions {
+/**
+ * process mongoose schema options
+ * @param root - options object literal expression node
+ */
+export function processMOptions(
+  root?: ts.ObjectLiteralExpression
+): MSchemaOptions {
   if (!root) {
     return {
       omitId: false,
@@ -37,7 +43,7 @@ function processMOptions(root?: ts.ObjectLiteralExpression): MSchemaOptions {
   let typeKey = "type";
 
   // timestamps
-  const timestampField = objectMap.get("timestamp");
+  const timestampField = objectMap.get("timestamps");
   if (timestampField) {
     if (timestampField.value.kind === ts.SyntaxKind.TrueKeyword) {
       createdAt = "createdAt";
@@ -67,7 +73,7 @@ function processMOptions(root?: ts.ObjectLiteralExpression): MSchemaOptions {
   // omitId
   const omitField = objectMap.get("_id");
   if (omitField) {
-    if (omitField.value.kind === ts.SyntaxKind.TrueKeyword) {
+    if (omitField.value.kind === ts.SyntaxKind.FalseKeyword) {
       omitId = true;
     }
   }
@@ -174,21 +180,19 @@ export function traverseObject(
   const map = new Map<string, GeneralField>();
   node.forEachChild((olChild) => {
     if (ts.isPropertyAssignment(olChild)) {
-      const importantChildren: ts.Node[] = [];
+      const goodKids: ts.Node[] = [];
 
       olChild.forEachChild((paChild) => {
-        if (isValidMFieldNode(paChild)) {
-          importantChildren.push(paChild);
-        }
+        goodKids.push(paChild);
       });
 
       if (
-        ts.isIdentifier(importantChildren[0]) && // [0] is the key
-        importantChildren[1]
+        ts.isIdentifier(goodKids[0]) && // [0] is the key
+        goodKids[1]
       ) {
-        map.set(importantChildren[0].text, {
-          name: importantChildren[0],
-          value: importantChildren[1],
+        map.set(goodKids[0].text, {
+          name: goodKids[0],
+          value: goodKids[1],
         });
       }
     }
@@ -248,13 +252,13 @@ export function createInterface(
   // push in createdAt
   if (mOptions.createdAt) {
     elements.push(
-      genPropertySignature(mOptions.createdAt, true, genMTypeRef("Date"))
+      genPropertySignature(mOptions.createdAt, true, genTypeRef("Date"))
     );
   }
   // push in updatedAt
   if (mOptions.updatedAt) {
     elements.push(
-      genPropertySignature(mOptions.updatedAt, true, genMTypeRef("Date"))
+      genPropertySignature(mOptions.updatedAt, true, genTypeRef("Date"))
     );
   }
   const iface = ts.factory.createInterfaceDeclaration(
@@ -459,7 +463,7 @@ export function processObject(
           mapValTypeNode = typeNode;
           additionals.push(...extraNodes);
         } else if (ts.isObjectLiteralExpression(mapValNode)) {
-          const newNodes = genPropertyInterface(root, name, options);
+          const newNodes = genPropertyInterface(root, name, mOptions, options);
           // add typeref to our current interface type
           mapValTypeNode = genTypeRefForInterface(newNodes[0]);
           additionals.push(...newNodes.flat());
@@ -532,7 +536,7 @@ export function processObject(
   // if we got this far without a type, its probably a nested object
   if (!type) {
     // create a new interface
-    const newNodes = genPropertyInterface(root, name, options);
+    const newNodes = genPropertyInterface(root, name, mOptions, options);
     type = genTypeRefForInterface(newNodes[0]);
     additionals.push(...newNodes.flat());
   }

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2016",
-    "lib": ["ES2020"],
+    "target": "es2017",
+    "lib": ["ESNext"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "module": "commonjs",
@@ -15,8 +15,9 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "allowJs": true
+    "allowJs": true,
+    "noEmit": true
   },
-  "include": ["src/"],
+  "include": ["src/", "__tests__"],
   "exclude": ["node_modules/", "dist"]
 }
