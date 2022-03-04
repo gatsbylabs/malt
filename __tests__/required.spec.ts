@@ -52,4 +52,32 @@ interface S {
       expect(o).toBe(e);
     }
   );
+
+  it.only("required nested object", () => {
+    const options = parseOptions({
+      enumStyle: "PascalCase",
+      interfaceStyle: "PascalCase",
+    });
+    const sourceFile = genSourceFile(`const s = new mongoose.Schema({
+      name: {
+        type: { name: { type: String, required: true } },
+        required: true
+      },
+    });`);
+
+    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+    expect(typeof o).toBe("string");
+
+    const e = `// eslint-disable 
+import mongoose from "mongoose";
+interface S {
+    name: Name;
+}
+interface Name {
+    name: string;
+}
+`;
+
+    expect(o).toBe(e);
+  });
 });
