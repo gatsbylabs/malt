@@ -119,3 +119,4 @@ export enum Enums {
 - [ ] discriminated unions
 - [ ] add comment with text of original schema field configuration
 - [ ] aliased imports of schemas and types
+- [ ] options on null, undefined, or optional generation
