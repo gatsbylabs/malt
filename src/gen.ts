@@ -2,7 +2,7 @@ import ts from "typescript";
 import { DEBUG } from "./config";
 import { TsNodeError } from "./error";
 import { findUnusedName } from "./helpers";
-import { createInterface, traverseObject } from "./processors";
+import { createInterface, traverseSchemaObject } from "./processors";
 import { ParsedOptions, TextConvert } from "./types";
 
 /**
@@ -157,7 +157,7 @@ export function genPropertyInterface(
   options: ParsedOptions
 ) {
   // create a new interface
-  const objectMap = traverseObject(root);
+  const objectMap = traverseSchemaObject(root);
   const interfaceName = findUnusedName(name.text, options.usedNames);
   const newNodes = createInterface(interfaceName, objectMap, options);
   const iface = newNodes[0];

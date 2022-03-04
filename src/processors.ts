@@ -14,7 +14,79 @@ import {
 import { isMType, isValidMFieldNode } from "./guards";
 import { findUnusedName } from "./helpers";
 import { filterVarMap, findObjectLiterals } from "./schema";
-import { MField, ParsedField, ParsedOptions } from "./types";
+import {
+  GeneralField,
+  MField,
+  MSchemaOptions,
+  ParsedField,
+  ParsedOptions,
+} from "./types";
+
+function processMOptions(root?: ts.ObjectLiteralExpression): MSchemaOptions {
+  if (!root) {
+    return {
+      omitId: false,
+      typeKey: "type",
+    };
+  }
+
+  const objectMap = traverseObject(root);
+  let createdAt: MSchemaOptions["createdAt"];
+  let updatedAt: MSchemaOptions["createdAt"];
+  let omitId = false;
+  let typeKey = "type";
+
+  // timestamps
+  const timestampField = objectMap.get("timestamp");
+  if (timestampField) {
+    if (timestampField.value.kind === ts.SyntaxKind.TrueKeyword) {
+      createdAt = "createdAt";
+      updatedAt = "updatedAt";
+    } else if (ts.isObjectLiteralExpression(timestampField.value)) {
+      const tsoMap = traverseObject(timestampField.value);
+
+      const parseTimeField = (
+        objectMap: Map<string, GeneralField>,
+        key: "createdAt" | "updatedAt"
+      ): string | undefined => {
+        const timestampField = objectMap.get(key);
+        if (timestampField) {
+          if (ts.isStringLiteral(timestampField.value)) {
+            return timestampField.value.text;
+          } else if (timestampField.value.kind === ts.SyntaxKind.TrueKeyword) {
+            return key;
+          }
+        }
+      };
+
+      createdAt = parseTimeField(tsoMap, "createdAt");
+      updatedAt = parseTimeField(tsoMap, "updatedAt");
+    }
+  }
+
+  // omitId
+  const omitField = objectMap.get("_id");
+  if (omitField) {
+    if (omitField.value.kind === ts.SyntaxKind.TrueKeyword) {
+      omitId = true;
+    }
+  }
+
+  // typeKey
+  const typeKeyField = objectMap.get("typeKey");
+  if (typeKeyField) {
+    if (ts.isStringLiteral(typeKeyField.value)) {
+      typeKey = typeKeyField.value.text;
+    }
+  }
+
+  return {
+    createdAt,
+    updatedAt,
+    omitId,
+    typeKey,
+  };
+}
 
 /**
  * process a source file and return type nodes
@@ -34,11 +106,17 @@ export function processSourceFile(
   schemas.forEach((s) => {
     const nodes = findObjectLiterals(s.node);
     const schemaExpression = nodes[0];
-    // const optionExpression = nodes[1];
+    const mOptions = processMOptions(nodes[1]);
+
     if (schemaExpression) {
       const objectMap = traverseObject(schemaExpression);
       const interfaceName = findUnusedName(s.name, options.usedNames);
-      const nodes = createInterface(interfaceName, objectMap, options).flat();
+      const nodes = createInterface(
+        interfaceName,
+        cleanMFieldObject(objectMap),
+        mOptions,
+        options
+      ).flat();
       ifaceGen.push(...nodes);
     }
   });
@@ -90,8 +168,10 @@ export function createTopLevelVariableMap(sourceFile: ts.SourceFile) {
  * traverse an object literal expression and collect property nodes
  * @param node - object literal expression node
  */
-export function traverseObject(node: ts.ObjectLiteralExpression) {
-  const map = new Map<string, MField>();
+export function traverseObject(
+  node: ts.ObjectLiteralExpression
+): Map<string, GeneralField> {
+  const map = new Map<string, GeneralField>();
   node.forEachChild((olChild) => {
     if (ts.isPropertyAssignment(olChild)) {
       const importantChildren: ts.Node[] = [];
@@ -104,7 +184,7 @@ export function traverseObject(node: ts.ObjectLiteralExpression) {
 
       if (
         ts.isIdentifier(importantChildren[0]) && // [0] is the key
-        isValidMFieldNode(importantChildren[1])
+        importantChildren[1]
       ) {
         map.set(importantChildren[0].text, {
           name: importantChildren[0],
@@ -116,6 +196,22 @@ export function traverseObject(node: ts.ObjectLiteralExpression) {
   return map;
 }
 
+export function cleanMFieldObject(
+  map: Map<string, GeneralField>
+): Map<string, MField> {
+  const mFieldMap = new Map<string, MField>();
+  map.forEach((value, key) => {
+    if (isValidMFieldNode(value.value)) {
+      mFieldMap.set(key, {
+        name: value.name,
+        value: value.value,
+      });
+    }
+  });
+
+  return mFieldMap;
+}
+
 /**
  * create an interface type declaration from a mongoose field node map
  * @param name
@@ -125,6 +221,7 @@ export function traverseObject(node: ts.ObjectLiteralExpression) {
 export function createInterface(
   name: string,
   map: Map<string, MField>,
+  mOptions: MSchemaOptions,
   options: ParsedOptions
 ): [ts.InterfaceDeclaration, ts.Node[]] {
   name = options.interfaceCase(name);
@@ -132,16 +229,34 @@ export function createInterface(
   const elements: ts.TypeElement[] = [];
   const additionals: ts.Node[][] = [];
 
+  // if there isn't already an _id field and we're not omitting the id
+  if (!mOptions.omitId && !map.has("_id")) {
+    // push in an _id
+    elements.push(genPropertySignature("_id", true, genMTypeRef("ObjectId")));
+  }
+
   map.forEach((field, name) => {
     const {
       nodes: [fieldTypeNode, additionalTypeNodes],
       optional,
-    } = parseField(field.name, field.value, options);
+    } = parseField(field.name, field.value, mOptions, options);
     additionals.push(additionalTypeNodes);
 
     elements.push(genPropertySignature(name, optional, fieldTypeNode));
   });
 
+  // push in createdAt
+  if (mOptions.createdAt) {
+    elements.push(
+      genPropertySignature(mOptions.createdAt, true, genMTypeRef("Date"))
+    );
+  }
+  // push in updatedAt
+  if (mOptions.updatedAt) {
+    elements.push(
+      genPropertySignature(mOptions.updatedAt, true, genMTypeRef("Date"))
+    );
+  }
   const iface = ts.factory.createInterfaceDeclaration(
     undefined,
     undefined,
@@ -162,6 +277,7 @@ export function createInterface(
 function parseField(
   name: MField["name"],
   value: MField["value"],
+  mOptions: MSchemaOptions,
   options: ParsedOptions
 ): ParsedField {
   if (ts.isIdentifier(value)) {
@@ -172,10 +288,10 @@ function parseField(
     return { nodes: [node, []], optional: true };
   }
   if (ts.isArrayLiteralExpression(value)) {
-    return processArrayLiteral(name, value, options);
+    return processArrayLiteral(name, value, mOptions, options);
   }
   if (ts.isObjectLiteralExpression(value)) {
-    return processObject(name, value, options);
+    return processObject(name, value, mOptions, options);
   }
   return {
     nodes: [genPrimitive(ts.SyntaxKind.AnyKeyword), []],
@@ -212,6 +328,7 @@ function processPropertyAccess(
 function processArrayLiteral(
   name: ts.Identifier,
   node: ts.ArrayLiteralExpression,
+  mOptions: MSchemaOptions,
   options: ParsedOptions
 ): ParsedField {
   const additionals: ts.Node[] = [];
@@ -225,7 +342,7 @@ function processArrayLiteral(
         const {
           nodes: [typeNode, extraNodes],
           optional: outputOptional,
-        } = processObject(name, child, options);
+        } = processObject(name, child, mOptions, options);
         optional = outputOptional;
         additionals.push(...extraNodes);
         return typeNode;
@@ -235,7 +352,7 @@ function processArrayLiteral(
         const {
           nodes: [typeNode, extraNodes],
           optional: outputOptional,
-        } = processArrayLiteral(name, child, options);
+        } = processArrayLiteral(name, child, mOptions, options);
         optional = outputOptional;
         additionals.push(...extraNodes);
         return typeNode;
@@ -293,8 +410,10 @@ function processIdentifer(node: ts.Identifier, options: ParsedOptions) {
 export function processObject(
   name: ts.Identifier,
   root: ts.ObjectLiteralExpression,
+  mOptions: MSchemaOptions,
   options: ParsedOptions
 ): ParsedField {
+  const typeKey = mOptions.typeKey;
   // collect all the fields of the object
   const propMap: { [idText: string]: ts.Node } = {};
   root.forEachChild((node) => {
@@ -319,8 +438,8 @@ export function processObject(
   const additionals: ts.Node[] = [];
 
   // find the type
-  if (propMap.type) {
-    const node = propMap.type;
+  if (propMap[typeKey]) {
+    const node = propMap[typeKey];
     // process Map
     if (ts.isIdentifier(node) && node.text === "Map") {
       // parsing { type: Map, of: <ANY> }
@@ -335,7 +454,7 @@ export function processObject(
           const {
             nodes: [typeNode, extraNodes],
             optional: outputOptional,
-          } = processArrayLiteral(name, mapValNode, options);
+          } = processArrayLiteral(name, mapValNode, mOptions, options);
           optional = !outputOptional;
           mapValTypeNode = typeNode;
           additionals.push(...extraNodes);
@@ -352,7 +471,7 @@ export function processObject(
       const {
         nodes: [typeNode, extraNodes],
         optional: outputOptional,
-      } = parseField(name, node, options);
+      } = parseField(name, node, mOptions, options);
       optional = outputOptional;
       type = typeNode;
       additionals.push(...extraNodes);

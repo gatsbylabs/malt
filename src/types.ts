@@ -67,3 +67,15 @@ export interface MField {
     | ts.ArrayLiteralExpression
     | ts.PropertyAccessExpression;
 }
+
+export interface GeneralField {
+  name: ts.Identifier;
+  value: ts.Node;
+}
+
+export interface MSchemaOptions {
+  omitId: boolean; // omit _id, only works on subdocuments
+  typeKey: string; // defaults to 'type'
+  createdAt?: string; // createdAt identifier
+  updatedAt?: string; // createdAt identifier
+}
