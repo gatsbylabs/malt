@@ -4,6 +4,8 @@ on:
     paths:
       - '**.ts'
       - '**.js'
+    branches:
+      - main
 jobs:
   test:
     runs-on: ubuntu-latest
