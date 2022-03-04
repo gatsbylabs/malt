@@ -53,7 +53,7 @@ interface S {
     }
   );
 
-  it.only("required nested object", () => {
+  it("required nested object", () => {
     const options = parseOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",

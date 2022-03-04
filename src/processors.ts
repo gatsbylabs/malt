@@ -13,7 +13,7 @@ import {
 } from "./gen";
 import { isMType, isValidMFieldNode } from "./guards";
 import { findUnusedName } from "./helpers";
-import { filterVarMap } from "./schema";
+import { filterVarMap, findObjectLiterals } from "./schema";
 import { MField, ParsedField, ParsedOptions } from "./types";
 
 /**
@@ -32,9 +32,11 @@ export function processSourceFile(
   // generate interface type nodes
   const ifaceGen: ts.Node[] = [];
   schemas.forEach((s) => {
-    const node = findObjectLiteral(s.node);
-    if (node) {
-      const objectMap = traverseObject(node);
+    const nodes = findObjectLiterals(s.node);
+    const schemaExpression = nodes[0];
+    // const optionExpression = nodes[1];
+    if (schemaExpression) {
+      const objectMap = traverseObject(schemaExpression);
       const interfaceName = findUnusedName(s.name, options.usedNames);
       const nodes = createInterface(interfaceName, objectMap, options).flat();
       ifaceGen.push(...nodes);
@@ -72,10 +74,12 @@ export function createTopLevelVariableMap(sourceFile: ts.SourceFile) {
 
   return declarations.reduce<Map<string, ts.VariableDeclaration>>(
     (map, declaration) => {
-      const identifier = declaration.getChildAt(0);
-      if (ts.isIdentifier(identifier)) {
-        map.set(identifier.text, declaration);
-      }
+      declaration.forEachChild((child) => {
+        if (ts.isIdentifier(child)) {
+          map.set(child.text, declaration);
+          return;
+        }
+      });
       return map;
     },
     new Map()
@@ -88,12 +92,16 @@ export function createTopLevelVariableMap(sourceFile: ts.SourceFile) {
  */
 export function traverseObject(node: ts.ObjectLiteralExpression) {
   const map = new Map<string, MField>();
-  node.forEachChild((child) => {
-    if (ts.isPropertyAssignment(child)) {
+  node.forEachChild((olChild) => {
+    if (ts.isPropertyAssignment(olChild)) {
       const importantChildren: ts.Node[] = [];
-      child.forEachChild((id) => {
-        importantChildren.push(id);
+
+      olChild.forEachChild((paChild) => {
+        if (isValidMFieldNode(paChild)) {
+          importantChildren.push(paChild);
+        }
       });
+
       if (
         ts.isIdentifier(importantChildren[0]) && // [0] is the key
         isValidMFieldNode(importantChildren[1])
@@ -146,26 +154,6 @@ export function createInterface(
 }
 
 /**
- * find the nearest object literal expression node
- * @param node - root node
- */
-export function findObjectLiteral(
-  node: ts.Node
-): ts.ObjectLiteralExpression | null {
-  if (ts.isObjectLiteralExpression(node)) {
-    return node;
-  }
-
-  for (const child of node.getChildren()) {
-    const found = findObjectLiteral(child);
-    if (found) {
-      return found;
-    }
-  }
-  return null;
-}
-
-/**
  * parse a mongoose node field
  * @param name
  * @param value
@@ -203,8 +191,12 @@ function processPropertyAccess(
   node: ts.PropertyAccessExpression,
   options: ParsedOptions
 ) {
-  const last = node.getChildAt(node.getChildCount() - 1);
-  if (ts.isIdentifier(last)) {
+  const nodes: ts.Node[] = [];
+  node.forEachChild((nChild) => {
+    nodes.push(nChild);
+  });
+  const last = nodes[nodes.length - 1];
+  if (last && ts.isIdentifier(last)) {
     return processIdentifer(last, options);
   } else {
     throw new TsNodeError("Malformed property access expression", last);
@@ -307,8 +299,15 @@ export function processObject(
   const propMap: { [idText: string]: ts.Node } = {};
   root.forEachChild((node) => {
     if (ts.isPropertyAssignment(node)) {
-      const keyNode = node.getChildAt(0);
-      const valueNode = node.getChildAt(2);
+      const importantChildren: ts.Node[] = [];
+
+      node.forEachChild((nChild) => {
+        importantChildren.push(nChild);
+      });
+
+      const keyNode = importantChildren[0];
+      const valueNode = importantChildren[1];
+
       if (ts.isIdentifier(keyNode)) {
         propMap[keyNode.text] = valueNode;
       }
