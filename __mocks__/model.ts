@@ -1,4 +1,4 @@
-import mongoose, { model, Schema } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 
 // https://mongoosejs.com/docs/schematypes.html
 const identifierSchema = new Schema({

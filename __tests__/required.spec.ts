@@ -1,6 +1,6 @@
 import { processSourceFile } from "../src/index";
 import { parseOptions } from "../src/options";
-import { genSourceFile, MATRIX, printArr } from "./helpers";
+import { MATRIX, genSourceFile, printArr } from "./helpers";
 
 describe("required field", () => {
   it.each(MATRIX)(

@@ -1,10 +1,11 @@
 import ts from "typescript";
+
 import { TsNodeError } from "./error";
 import {
   genEnum,
-  genMap,
   genMImport,
   genMTypeRef,
+  genMap,
   genPrimitive,
   genPropertyInterface,
   genPropertySignature,

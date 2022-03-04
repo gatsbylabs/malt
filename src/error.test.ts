@@ -1,4 +1,5 @@
 import ts from "typescript";
+
 import { TsNodeError } from "./error";
 
 describe("TsNodeError", () => {

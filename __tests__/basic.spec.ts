@@ -1,5 +1,5 @@
 import { parseOptions, processSourceFile } from "../src";
-import { genSourceFile, MATRIX, printArr } from "./helpers";
+import { MATRIX, genSourceFile, printArr } from "./helpers";
 
 describe("basic un-nested schema", () => {
   it.each(MATRIX)("basic schema with $m", ({ m, type }) => {

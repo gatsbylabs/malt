@@ -1,4 +1,5 @@
 import ts from "typescript";
+
 import { DEBUG } from "./config";
 
 /** Error type that can return an AST Node */

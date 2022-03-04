@@ -1,5 +1,5 @@
 import { parseOptions, processSourceFile } from "../src";
-import { genSourceFile, MATRIX, printArr } from "./helpers";
+import { MATRIX, genSourceFile, printArr } from "./helpers";
 
 describe("schemas with arrays", () => {
   it.each(MATRIX)("schema with basic array: [$m]", ({ m, type }) => {

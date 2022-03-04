@@ -1,5 +1,6 @@
 import { camelCase, pascalCase, snakeCase } from "change-case";
 import { upperCase } from "upper-case";
+
 import { TextStyle } from "./types";
 
 /**

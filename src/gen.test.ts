@@ -1,9 +1,10 @@
 import ts from "typescript";
+
 import {
   genEnum,
-  genMap,
   genMImport,
   genMTypeRef,
+  genMap,
   genPrimitive,
   genPropertyInterface,
   genPropertySignature,
@@ -11,6 +12,7 @@ import {
   genTypeRefForInterface,
 } from "./gen";
 import { parseOptions } from "./options";
+
 const printer = ts.createPrinter();
 const sourceFile = ts.createSourceFile("test.ts", "", ts.ScriptTarget.ESNext);
 
