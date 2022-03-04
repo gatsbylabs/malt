@@ -4,5 +4,5 @@
     "noEmit": false
   },
   "include": ["src/"],
-  "exclude": ["node_modules/", "dist", "build-dev"]
+  "exclude": ["node_modules/", "dist", "build-dev", "src/**/*.test.ts", "src/**/*.spec.ts"]
 }

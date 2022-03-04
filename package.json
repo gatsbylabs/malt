@@ -27,6 +27,7 @@
   "scripts": {
     "check": "tsc",
     "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
     "prepublish": "tsc",
     "test": "jest",
     "lint": "eslint src/",

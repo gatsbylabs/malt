@@ -10,7 +10,7 @@ describe("processors", () => {
     });
   });
 
-  it.only("processes all Mongoose options", () => {
+  it("processes all Mongoose options", () => {
     const optionNode = ts.factory.createObjectLiteralExpression(
       [
         ts.factory.createPropertyAssignment(
