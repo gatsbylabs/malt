@@ -9,7 +9,6 @@
     "moduleResolution": "node",
     "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
-    "declaration": true,
     "outDir": "./dist",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

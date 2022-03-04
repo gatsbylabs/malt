@@ -1,11 +1,16 @@
 {
-  "name": "mongoose-avro-parser",
+  "name": "@gatsbylabs/malt",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "malt": "dist/bin.js"
+  "bin": "dist/bin.js",
+  "files": [
+    "/dist"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
+  "author": "Enoch Chau <enoch@gatsby.events>",
   "license": "MIT",
   "packageManager": "yarn@3.1.1",
   "devDependencies": {
