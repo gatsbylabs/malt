@@ -5,10 +5,10 @@ import { ParsedOptions, RawOptions } from "./types";
  * convert raw options to parsed options
  * @param options - raw options
  */
-export function parseOptions(options: RawOptions): ParsedOptions {
+export function parseOptions(options?: RawOptions): ParsedOptions {
   return {
-    enumCase: convertTextStyleFn(options.enumStyle),
-    interfaceCase: convertTextStyleFn(options.interfaceStyle),
+    enumCase: convertTextStyleFn(options?.enumStyle ?? "default"),
+    interfaceCase: convertTextStyleFn(options?.interfaceStyle ?? "default"),
     usedNames: new Set(),
   };
 }

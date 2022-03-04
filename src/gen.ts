@@ -74,7 +74,7 @@ export function genMImport(disableEslint = false) {
     return ts.addSyntheticLeadingComment(
       declaration,
       ts.SyntaxKind.SingleLineCommentTrivia,
-      " eslint-dsiable \n"
+      " eslint-disable \n"
     );
   }
   return declaration;

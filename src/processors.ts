@@ -3,6 +3,7 @@ import { TsNodeError } from "./error";
 import {
   genEnum,
   genMap,
+  genMImport,
   genMTypeRef,
   genPrimitive,
   genPropertyInterface,
@@ -12,7 +13,36 @@ import {
 } from "./gen";
 import { isMType, isValidMFieldNode } from "./guards";
 import { findUnusedName } from "./helpers";
+import { filterVarMap } from "./schema";
 import { MField, ParsedField, ParsedOptions } from "./types";
+
+/**
+ * process a source file and return type nodes
+ * @param sourceFile
+ * @param options
+ */
+export function processSourceFile(
+  sourceFile: ts.SourceFile,
+  options: ParsedOptions
+) {
+  const variableMap = createTopLevelVariableMap(sourceFile);
+  // find all the schemas
+  const schemas = filterVarMap(variableMap);
+
+  // generate interface type nodes
+  const ifaceGen: ts.Node[] = [];
+  schemas.forEach((s) => {
+    const node = findObjectLiteral(s.node);
+    if (node) {
+      const objectMap = traverseObject(node);
+      const interfaceName = findUnusedName(s.name, options.usedNames);
+      const nodes = createInterface(interfaceName, objectMap, options).flat();
+      ifaceGen.push(...nodes);
+    }
+  });
+
+  return ts.factory.createNodeArray([genMImport(true), ...ifaceGen]);
+}
 
 /**
  * create map of variable declaration to variable names for top level variable nodes
@@ -118,18 +148,16 @@ export function createInterface(
 /**
  * find the nearest object literal expression node
  * @param node - root node
- * @param checker
  */
 export function findObjectLiteral(
-  node: ts.Node,
-  checker: ts.TypeChecker
+  node: ts.Node
 ): ts.ObjectLiteralExpression | null {
   if (ts.isObjectLiteralExpression(node)) {
     return node;
   }
 
   for (const child of node.getChildren()) {
-    const found = findObjectLiteral(child, checker);
+    const found = findObjectLiteral(child);
     if (found) {
       return found;
     }

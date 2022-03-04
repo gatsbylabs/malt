@@ -1,8 +1,7 @@
-import mongoose, { Schema } from "mongoose";
-mongoose.Schema.Types;
+import mongoose, { model, Schema } from "mongoose";
 
 // https://mongoosejs.com/docs/schematypes.html
-/* const identifierSchema = new Schema({
+const identifierSchema = new Schema({
   name: String,
   binary: Buffer,
   living: Boolean,
@@ -31,7 +30,7 @@ mongoose.Schema.Types;
   },
 });
 
-export const Identifier = model("Identifier", identifierSchema); */
+export const Identifier = model("Identifier", identifierSchema);
 
 const accessedSchema = new mongoose.Schema({
   name: String,

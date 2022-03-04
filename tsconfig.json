@@ -14,8 +14,9 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true
+    "strict": true,
+    "allowJs": true
   },
-  "include": ["src/"],
+  "include": ["src/", "__tests__", "__mocks__"],
   "exclude": ["node_modules/", "dist"]
 }

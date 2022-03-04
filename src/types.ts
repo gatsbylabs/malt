@@ -47,8 +47,8 @@ export type TextStyle =
   | "SCREAMING_SNAKE_CASE";
 
 export interface RawOptions {
-  enumStyle: TextStyle;
-  interfaceStyle: TextStyle;
+  enumStyle?: TextStyle;
+  interfaceStyle?: TextStyle;
 }
 
 export interface ParsedOptions {
