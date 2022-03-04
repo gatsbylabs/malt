@@ -5,8 +5,11 @@
  */
 export function findUnusedName(rawName: string, usedNames: Set<string>) {
   let newName = rawName;
-  for (let i = 0; usedNames.has(newName); i++) {
+  let i = 0;
+  while (usedNames.has(newName)) {
     newName = rawName + i;
+    i++;
   }
+  usedNames.add(newName);
   return newName;
 }

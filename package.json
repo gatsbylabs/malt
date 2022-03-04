@@ -28,6 +28,7 @@
     "tsc": "tsc",
     "prepublish": "tsc",
     "test": "jest",
+    "tsc:test": "tsc -p tsconfig.test.json",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "dev": "node build.cjs && node --enable-source-maps build-dev/bundle.js __mocks__/model.ts",
