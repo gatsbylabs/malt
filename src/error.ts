@@ -19,17 +19,27 @@ interface FormattedErrorMsg {
 
 export function tsNodeErrorHandler(
   e: TsNodeError,
+  fileName: string,
   sourceFile: ts.SourceFile
 ): FormattedErrorMsg {
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(
-    e.node.getStart()
-  );
-  if (DEBUG) {
-    console.log(e);
+  try {
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+      e.node.getStart()
+    );
+    if (DEBUG) {
+      console.log(e);
+    }
+
+    return {
+      location: `[${fileName}: ${line + 1},${character + 1}]`,
+      message: e.message,
+      nodeText: e.node.getFullText(sourceFile),
+    };
+  } catch {
+    return {
+      location: "",
+      message: e.message,
+      nodeText: e.stack ?? "",
+    };
   }
-  return {
-    location: `[${sourceFile.fileName}: ${line + 1},${character + 1}]`,
-    message: e.message,
-    nodeText: e.node.getFullText(),
-  };
 }

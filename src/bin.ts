@@ -80,6 +80,7 @@ function gen(fileNames: string[]): [string, string][] {
       if (e instanceof TsNodeError) {
         const { location, message, nodeText } = tsNodeErrorHandler(
           e,
+          fileName,
           sourceFile
         );
         console.log(chalk.blue(location), chalk.yellow(message), nodeText);

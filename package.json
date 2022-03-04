@@ -41,7 +41,7 @@
     "test": "jest",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "dev": "node build.cjs && node --enable-source-maps build-dev/bundle.js ./__mocks__/model.ts",
+    "dev": "node build.cjs && node --enable-source-maps dist/bin.js",
     "fmt": "prettier . --write",
     "postinstall": "husky install",
     "prepublishOnly": "npm-run-all pinst:disable --parallel test lint --sequential build",
