@@ -58,11 +58,13 @@ function gen(fileNames: string[]): [string, string][] {
     interfaceStyle: "PascalCase",
   });
 
-  return fileNames.map((fileName) => {
+  return fileNames.reduce<[string, string][]>((outputs, fileName) => {
     const sourceFile = tsProgram.getSourceFile(fileName);
     if (!sourceFile) throw new Error(`Source file not found: ${fileName}`);
     try {
       const nodes = processSourceFile(sourceFile, options);
+      if (!nodes) return outputs;
+
       const outFile = printer.printList(
         ts.ListFormat.MultiLine,
         nodes,
@@ -72,7 +74,8 @@ function gen(fileNames: string[]): [string, string][] {
         console.error("Error encountered, exiting.");
         process.exit(1);
       }
-      return [fileName, outFile];
+      outputs.push([fileName, outFile]);
+      return outputs;
     } catch (e) {
       if (e instanceof TsNodeError) {
         const { location, message, nodeText } = tsNodeErrorHandler(
@@ -85,7 +88,7 @@ function gen(fileNames: string[]): [string, string][] {
         throw e;
       }
     }
-  });
+  }, []);
 }
 
 async function getAllFiles(files: string[]): Promise<string[]> {

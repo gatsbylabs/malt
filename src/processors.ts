@@ -103,10 +103,11 @@ export function processMOptions(
 export function processSourceFile(
   sourceFile: ts.SourceFile,
   options: ParsedOptions
-) {
+): ts.NodeArray<ts.Node> | undefined {
   const variableMap = createTopLevelVariableMap(sourceFile);
   // find all the schemas
   const schemas = filterVarMap(variableMap);
+  if (schemas.length < 1) return;
 
   // generate interface type nodes
   const ifaceGen: ts.Node[] = [];
