@@ -1,9 +1,9 @@
-import { parseOptions, processSourceFile } from "../src";
+import { getOptions, processSourceFile } from "../src";
 import { genSourceFile, printArr } from "./helpers";
 
 describe("schema options parsing", () => {
   it("_id: omit id", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -24,7 +24,7 @@ interface S {
   });
 
   it("typeKey: use a different type key", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -46,7 +46,7 @@ interface S {
   });
 
   it("timestamps: true", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });

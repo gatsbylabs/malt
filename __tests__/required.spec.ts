@@ -1,12 +1,12 @@
 import { processSourceFile } from "../src/index";
-import { parseOptions } from "../src/options";
+import { getOptions } from "../src/options";
 import { MATRIX, genSourceFile, printArr } from "./helpers";
 
 describe("required field", () => {
   it.each(MATRIX)(
     "basic required object type: { type: $m, required: true }",
     ({ m, type }) => {
-      const options = parseOptions({
+      const options = getOptions({
         enumStyle: "PascalCase",
         interfaceStyle: "PascalCase",
       });
@@ -32,7 +32,7 @@ interface S {
   it.each(MATRIX)(
     "required array: [{ type: $m, required: true }] ",
     ({ m, type }) => {
-      const options = parseOptions({
+      const options = getOptions({
         enumStyle: "PascalCase",
         interfaceStyle: "PascalCase",
       });
@@ -56,7 +56,7 @@ interface S {
   );
 
   it("required nested object", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });

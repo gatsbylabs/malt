@@ -1,9 +1,9 @@
-import { parseOptions, processSourceFile } from "../src";
+import { getOptions, processSourceFile } from "../src";
 import { MATRIX, genSourceFile, printArr } from "./helpers";
 
 describe("schemas with arrays", () => {
   it.each(MATRIX)("schema with basic array: [$m]", ({ m, type }) => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -25,7 +25,7 @@ interface S {
   });
 
   it.each(MATRIX)("schema with basic 2d array: [[$m]]", ({ m, type }) => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -49,7 +49,7 @@ interface S {
   it.each(MATRIX)(
     "schema with basic object type array: [{ type: $m }]",
     ({ m, type }) => {
-      const options = parseOptions({
+      const options = getOptions({
         enumStyle: "PascalCase",
         interfaceStyle: "PascalCase",
       });
@@ -74,7 +74,7 @@ interface S {
   it.each(MATRIX)(
     "schema with basic object type 2d array: [{ type: [{ type: $m }] }]",
     ({ m, type }) => {
-      const options = parseOptions({
+      const options = getOptions({
         enumStyle: "PascalCase",
         interfaceStyle: "PascalCase",
       });
@@ -99,7 +99,7 @@ interface S {
   it.each(MATRIX)(
     "schema with nested object type array: [{ type: { name: $m } }]",
     ({ m, type }) => {
-      const options = parseOptions({
+      const options = getOptions({
         enumStyle: "PascalCase",
         interfaceStyle: "PascalCase",
       });

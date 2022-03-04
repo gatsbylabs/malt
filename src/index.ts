@@ -1,2 +1,2 @@
-export { parseOptions } from "./options";
+export { getOptions } from "./options";
 export { processSourceFile } from "./processors";

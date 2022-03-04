@@ -1,10 +1,10 @@
 import { processSourceFile } from "../src/index";
-import { parseOptions } from "../src/options";
+import { getOptions } from "../src/options";
 import { genSourceFile, printArr } from "./helpers";
 
 describe("Integration testing", () => {
   it("finds and parses `new mongoose.Schema`", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -27,7 +27,7 @@ interface S {
   });
 
   it("finds and parses `new Schema`", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });

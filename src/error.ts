@@ -11,17 +11,25 @@ export class TsNodeError extends Error {
   }
 }
 
-export function tsNodeErrorHandler(e: TsNodeError, sourceFile: ts.SourceFile) {
+interface FormattedErrorMsg {
+  location: string;
+  message: string;
+  nodeText: string;
+}
+
+export function tsNodeErrorHandler(
+  e: TsNodeError,
+  sourceFile: ts.SourceFile
+): FormattedErrorMsg {
   const { line, character } = sourceFile.getLineAndCharacterOfPosition(
     e.node.getStart()
-  );
-  console.log(
-    `[${sourceFile.fileName}: ${line + 1},${character + 1}]`,
-    e.message,
-    "\n",
-    e.node.getFullText()
   );
   if (DEBUG) {
     console.log(e);
   }
+  return {
+    location: `[${sourceFile.fileName}: ${line + 1},${character + 1}]`,
+    message: e.message,
+    nodeText: e.node.getFullText(),
+  };
 }

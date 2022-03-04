@@ -1,9 +1,9 @@
-import { parseOptions, processSourceFile } from "../src";
+import { getOptions, processSourceFile } from "../src";
 import { genSourceFile, printArr } from "./helpers";
 
 describe("nested schemas", () => {
   it("nested schema", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -31,7 +31,7 @@ interface Name {
   });
 
   it("triple nested schema with duplicate names", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -66,7 +66,7 @@ interface Name0 {
   });
 
   it("schema that references another schema", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });

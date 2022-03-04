@@ -1,9 +1,9 @@
-import { parseOptions, processSourceFile } from "../src";
+import { getOptions, processSourceFile } from "../src";
 import { MATRIX, genSourceFile, printArr } from "./helpers";
 
 describe("basic un-nested schema", () => {
   it.each(MATRIX)("basic schema with $m", ({ m, type }) => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });

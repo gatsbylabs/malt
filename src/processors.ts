@@ -264,7 +264,7 @@ export function createInterface(
   }
   const iface = ts.factory.createInterfaceDeclaration(
     undefined,
-    undefined,
+    [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
     name,
     [],
     undefined,

@@ -1,41 +1,86 @@
+import chalk from "chalk";
+import { Command } from "commander";
+import fs from "fs";
+import mkdirp from "mkdirp";
+import path from "path";
 import ts from "typescript";
 
 import { TsNodeError, tsNodeErrorHandler } from "./error";
-import { parseOptions } from "./options";
+import { getOptions } from "./options";
 import { processSourceFile } from "./processors";
 
-const fileNames = process.argv.slice(2);
-const program = ts.createProgram(fileNames, {});
-const printer = ts.createPrinter();
+const cli = new Command();
+cli
+  .name("malt")
+  .description("Generate typescript interfaces from mongoose schemas.")
+  .version("0.0.1");
 
-const options = parseOptions({
-  enumStyle: "PascalCase",
-  interfaceStyle: "PascalCase",
+cli.arguments("<files...>").action(async (files) => {
+  const out = gen(files);
+
+  const dirs = Array.from(new Set(out.map((d) => getGenDir(d[0]))));
+  await Promise.all(dirs.map(async (dir) => mkdirp(dir)));
+
+  await Promise.all(
+    out.map(async ([fileName, output]) => {
+      await fs.promises.writeFile(
+        path.join(getGenDir(fileName), path.basename(fileName)),
+        output
+      );
+    })
+  );
 });
 
-const outputs = fileNames.map((fileName) => {
-  const sourceFile = program.getSourceFile(fileName);
-  if (!sourceFile) throw new Error(`Source file not found: ${fileName}`);
-  try {
-    const nodes = processSourceFile(sourceFile, options);
-    const outFile = printer.printList(
-      ts.ListFormat.MultiLine,
-      nodes,
-      sourceFile
-    );
-    if (outFile === undefined) {
-      console.error("Error encountered, exiting.");
-      process.exit(1);
-    }
-    return outFile;
-  } catch (e) {
-    if (e instanceof TsNodeError) {
-      tsNodeErrorHandler(e, sourceFile);
-      process.exit(1);
-    } else {
-      throw e;
-    }
-  }
-});
+cli.parse();
 
-console.log(outputs);
+/**
+ * get __generated__ file path from a file name
+ * @param filePath
+ */
+function getGenDir(filePath: string) {
+  return path.join(path.dirname(filePath), "__generated__");
+}
+
+/**
+ * generate typescript interfaces for the given paths
+ * @param fileNames
+ * @returns [fileName, output]
+ */
+function gen(fileNames: string[]): [string, string][] {
+  const tsProgram = ts.createProgram(fileNames, {});
+  const printer = ts.createPrinter();
+
+  const options = getOptions({
+    enumStyle: "PascalCase",
+    interfaceStyle: "PascalCase",
+  });
+
+  return fileNames.map((fileName) => {
+    const sourceFile = tsProgram.getSourceFile(fileName);
+    if (!sourceFile) throw new Error(`Source file not found: ${fileName}`);
+    try {
+      const nodes = processSourceFile(sourceFile, options);
+      const outFile = printer.printList(
+        ts.ListFormat.MultiLine,
+        nodes,
+        sourceFile
+      );
+      if (outFile === undefined) {
+        console.error("Error encountered, exiting.");
+        process.exit(1);
+      }
+      return [fileName, outFile];
+    } catch (e) {
+      if (e instanceof TsNodeError) {
+        const { location, message, nodeText } = tsNodeErrorHandler(
+          e,
+          sourceFile
+        );
+        console.log(chalk.blue(location), chalk.yellow(message), nodeText);
+        process.exit(1);
+      } else {
+        throw e;
+      }
+    }
+  });
+}

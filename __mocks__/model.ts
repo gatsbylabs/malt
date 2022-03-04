@@ -1,7 +1,9 @@
 import mongoose, { Schema, model } from "mongoose";
 
+import { AccessedSchema, IdentifierSchema } from "./__generated__/model";
+
 // https://mongoosejs.com/docs/schematypes.html
-const identifierSchema = new Schema({
+const identifierSchema = new Schema<IdentifierSchema>({
   name: String,
   binary: Buffer,
   living: Boolean,
@@ -32,7 +34,7 @@ const identifierSchema = new Schema({
 
 export const Identifier = model("Identifier", identifierSchema);
 
-const accessedSchema = new mongoose.Schema({
+const accessedSchema = new mongoose.Schema<AccessedSchema>({
   name: String,
   binary: Buffer,
   living: Boolean,

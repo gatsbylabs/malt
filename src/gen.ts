@@ -107,7 +107,7 @@ export function genEnum(
 
   return ts.factory.createEnumDeclaration(
     undefined,
-    undefined,
+    [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
     ts.factory.createIdentifier(name),
     literalFactory
   );

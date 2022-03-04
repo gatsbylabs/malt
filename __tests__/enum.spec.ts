@@ -1,9 +1,9 @@
-import { parseOptions, processSourceFile } from "../src";
+import { getOptions, processSourceFile } from "../src";
 import { genSourceFile, printArr } from "./helpers";
 
 describe("enums", () => {
   it("string enum", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -29,7 +29,7 @@ enum Name {
   });
 
   it("number enum", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });
@@ -55,7 +55,7 @@ enum Name {
   });
 
   it("required enum", () => {
-    const options = parseOptions({
+    const options = getOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
     });

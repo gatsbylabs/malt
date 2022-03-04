@@ -11,7 +11,7 @@ import {
   genTypeRef,
   genTypeRefForInterface,
 } from "./gen";
-import { parseOptions } from "./options";
+import { getOptions } from "./options";
 
 const printer = ts.createPrinter();
 const sourceFile = ts.createSourceFile("test.ts", "", ts.ScriptTarget.ESNext);
@@ -97,7 +97,7 @@ describe("test type node generators", () => {
         hi: Mixed
     }
     */
-    const options = parseOptions();
+    const options = getOptions();
 
     const o = printArr(
       ts.factory.createNodeArray(
