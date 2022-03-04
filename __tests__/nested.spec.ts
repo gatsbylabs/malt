@@ -28,7 +28,7 @@ interface Name {
     expect(o).toBe(e);
   });
 
-  it("triple nested schema", () => {
+  it("triple nested schema with duplicate names", () => {
     const options = parseOptions({
       enumStyle: "PascalCase",
       interfaceStyle: "PascalCase",
@@ -57,6 +57,35 @@ interface Name0 {
 }
 `;
 
+    expect(o).toBe(e);
+  });
+
+  it("schema that references another schema", () => {
+    const options = parseOptions({
+      enumStyle: "PascalCase",
+      interfaceStyle: "PascalCase",
+    });
+
+    const sourceFile = genSourceFile(`const s = new Schema({
+      name: { type: Number }
+    });
+    const e = new Schema({
+      sigma: s
+    })
+`);
+
+    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+    expect(typeof o).toBe("string");
+
+    const e = `// eslint-disable 
+import mongoose from "mongoose";
+interface S {
+    name?: number | null | undefined;
+}
+interface E {
+    sigma?: S | null | undefined;
+}
+`;
     expect(o).toBe(e);
   });
 });

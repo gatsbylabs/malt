@@ -3,12 +3,11 @@ import { parseOptions } from "../src/options";
 import { genSourceFile, printArr } from "./helpers";
 
 describe("Integration testing", () => {
-  const options = parseOptions({
-    enumStyle: "PascalCase",
-    interfaceStyle: "PascalCase",
-  });
-
   it("finds and parses `new mongoose.Schema`", () => {
+    const options = parseOptions({
+      enumStyle: "PascalCase",
+      interfaceStyle: "PascalCase",
+    });
     const sourceFile = genSourceFile(`const s = new mongoose.Schema({
       name: String,
     });`);
@@ -27,6 +26,10 @@ interface S {
   });
 
   it("finds and parses `new Schema`", () => {
+    const options = parseOptions({
+      enumStyle: "PascalCase",
+      interfaceStyle: "PascalCase",
+    });
     const sourceFile = genSourceFile(`const s = new Schema({
       name: String
     })`);

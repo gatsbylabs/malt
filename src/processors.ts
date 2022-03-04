@@ -177,10 +177,10 @@ function parseField(
   options: ParsedOptions
 ): ParsedField {
   if (ts.isIdentifier(value)) {
-    return { nodes: [processIdentifer(value), []], optional: true };
+    return { nodes: [processIdentifer(value, options), []], optional: true };
   }
   if (ts.isPropertyAccessExpression(value)) {
-    const node = processPropertyAccess(value);
+    const node = processPropertyAccess(value, options);
     return { nodes: [node, []], optional: true };
   }
   if (ts.isArrayLiteralExpression(value)) {
@@ -202,10 +202,13 @@ function parseField(
  * process a property access node into a type node
  * @param node
  */
-function processPropertyAccess(node: ts.PropertyAccessExpression) {
+function processPropertyAccess(
+  node: ts.PropertyAccessExpression,
+  options: ParsedOptions
+) {
   const last = node.getChildAt(node.getChildCount() - 1);
   if (ts.isIdentifier(last)) {
-    return processIdentifer(last);
+    return processIdentifer(last, options);
   } else {
     throw new TsNodeError("Malformed property access expression", last);
   }
@@ -226,13 +229,15 @@ function processArrayLiteral(
   const parsedId =
     node.forEachChild((child) => {
       if (ts.isIdentifier(child)) {
-        return processIdentifer(child);
+        return processIdentifer(child, options);
       } else if (ts.isObjectLiteralExpression(child)) {
-        const { nodes } = processObject(name, child, options);
-        additionals.push(...nodes.flat());
-        return nodes[0];
+        const {
+          nodes: [typeNode, extraNodes],
+        } = processObject(name, child, options);
+        additionals.push(...extraNodes);
+        return typeNode;
       } else if (ts.isPropertyAccessExpression(child)) {
-        return processPropertyAccess(child);
+        return processPropertyAccess(child, options);
       } else if (ts.isArrayLiteralExpression(child)) {
         const [typeNode, extraNodes] = processArrayLiteral(
           name,
@@ -251,8 +256,8 @@ function processArrayLiteral(
  * process an identifier into a type node
  * @param node
  */
-function processIdentifer(node: ts.Identifier) {
-  const text = node.text;
+function processIdentifer(node: ts.Identifier, options: ParsedOptions) {
+  let text = node.text;
   const ConstructorMap = {
     String: ts.SyntaxKind.StringKeyword,
     Number: ts.SyntaxKind.NumberKeyword,
@@ -261,10 +266,9 @@ function processIdentifer(node: ts.Identifier) {
   } as const;
 
   if (!isMType(node.text)) {
-    throw new TsNodeError(
-      `Type: ${node.text} is not a supported mongoose type!`,
-      node
-    );
+    // this is a reference to a schema declared elsewhere.
+    // convert the text using the interface style
+    text = options.interfaceCase(text);
   }
 
   switch (text) {
@@ -323,7 +327,7 @@ export function processObject(
       if (propMap.of) {
         const mapValNode = propMap.of;
         if (ts.isIdentifier(mapValNode)) {
-          mapValTypeNode = processIdentifer(mapValNode);
+          mapValTypeNode = processIdentifer(mapValNode, options);
         } else if (ts.isArrayLiteralExpression(mapValNode)) {
           const [typeNode, extraNodes] = processArrayLiteral(
             name,
@@ -342,10 +346,13 @@ export function processObject(
       type = genMap(mapValTypeNode);
     } else if (isValidMFieldNode(node)) {
       // process it as if it were a new schema
-      const { nodes, optional } = parseField(name, node, options);
+      const {
+        nodes: [typeNode, extraNodes],
+        optional,
+      } = parseField(name, node, options);
       required = !optional;
-      type = nodes[0];
-      additionals.push(...nodes[1]);
+      type = typeNode;
+      additionals.push(...extraNodes);
     }
   }
 
