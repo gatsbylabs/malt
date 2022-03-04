@@ -48,7 +48,7 @@
     "*.{js,ts,css,md}": "prettier --write"
   },
   "dependencies": {
-    "chalk": "^5.0.0",
+    "chalk": "^4",
     "change-case": "^4.1.2",
     "commander": "^9.0.0",
     "mkdirp": "^1.0.4",

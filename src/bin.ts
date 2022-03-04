@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import chalk from "chalk";
 import { Command } from "commander";
 import fs from "fs";
@@ -15,7 +16,9 @@ cli
   .description("Generate typescript interfaces from mongoose schemas.")
   .version("0.0.1");
 
-cli.arguments("<files...>").action(async (files) => {
+cli.arguments("<files...>").action(async (files: string[]) => {
+  files = await getAllFiles(files);
+
   const out = gen(files);
 
   const dirs = Array.from(new Set(out.map((d) => getGenDir(d[0]))));
@@ -83,4 +86,21 @@ function gen(fileNames: string[]): [string, string][] {
       }
     }
   });
+}
+
+async function getAllFiles(files: string[]): Promise<string[]> {
+  const all = await Promise.all(
+    files.map(async (f) => {
+      const stat = await fs.promises.lstat(f);
+      if (stat.isDirectory()) {
+        let next = await fs.promises.readdir(f);
+        next = next.map((nf) => path.join(f, nf));
+
+        return getAllFiles(next);
+      }
+
+      return f;
+    })
+  );
+  return all.flat();
 }
