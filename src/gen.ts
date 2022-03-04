@@ -5,10 +5,17 @@ import { findUnusedName } from "./helpers";
 import { createInterface, traverseObject } from "./processors";
 import { ParsedOptions, TextConvert } from "./types";
 
+/**
+ * generate a primitive node
+ */
 export function genPrimitive<T extends ts.KeywordTypeSyntaxKind>(kind: T) {
   return ts.factory.createKeywordTypeNode(kind);
 }
 
+/**
+ * generate a map node
+ * @param valueNode - type node that is the Value Type of the Map
+ */
 export function genMap(valueNode?: ts.TypeNode) {
   if (!valueNode) {
     valueNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
@@ -19,6 +26,11 @@ export function genMap(valueNode?: ts.TypeNode) {
   );
 }
 
+/**
+ * generate a type reference
+ * @param name - name
+ * @param textConvert - name conversion strategy
+ */
 export function genTypeRef(name: string, textConvert?: TextConvert) {
   if (textConvert) name = textConvert(name);
 
@@ -27,19 +39,24 @@ export function genTypeRef(name: string, textConvert?: TextConvert) {
 
 /**
  * generate type ref prefixed with 'mongoose.Types.'
+ * @param name - name of type ref
  */
-export function genMTypeRef(s: string) {
+export function genMTypeRef(name: string) {
   return ts.factory.createTypeReferenceNode(
     ts.factory.createQualifiedName(
       ts.factory.createQualifiedName(
         ts.factory.createIdentifier("mongoose"),
         ts.factory.createIdentifier("Types")
       ),
-      ts.factory.createIdentifier(s)
+      ts.factory.createIdentifier(name)
     )
   );
 }
 
+/**
+ * generate mongoose import statement
+ * @param disableEslint - add eslint disable comment
+ */
 export function genMImport(disableEslint = false) {
   const declaration = ts.factory.createImportDeclaration(
     undefined,
@@ -63,6 +80,12 @@ export function genMImport(disableEslint = false) {
   return declaration;
 }
 
+/**
+ * generate an enum
+ * @param name - name of enum
+ * @param literaNodes - nodes to use for enum
+ * @param textConvert - text style conversion strategy
+ */
 export function genEnum(
   name: string,
   literalNodes: (ts.StringLiteral | ts.NumericLiteral)[],
@@ -85,6 +108,13 @@ export function genEnum(
   );
 }
 
+/**
+ * generate a property signature
+ * @param name - name of property
+ * @param optional - is the proprety optional?
+ * @param typeNode - type of property
+ * @param textConvert - text style conversion strategy
+ */
 export function genPropertySignature(
   name: string,
   optional: boolean,
@@ -115,6 +145,12 @@ export function genPropertySignature(
   );
 }
 
+/**
+ * generate a proprety interface from an object literal expression
+ * @param root - object literal expression root node
+ * @param name
+ * @param options
+ */
 export function genPropertyInterface(
   root: ts.ObjectLiteralExpression,
   name: ts.Identifier,
@@ -134,6 +170,10 @@ export function genPropertyInterface(
   return newNodes;
 }
 
+/**
+ * generate a type reference for an interface declaration node
+ * @param node - interface declaration node
+ */
 export function genTypeRefForInterface(node: ts.InterfaceDeclaration) {
   const ifaceName = node.forEachChild((node) => {
     if (ts.isIdentifier(node)) return node.text;

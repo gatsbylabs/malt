@@ -4,6 +4,7 @@ import { MongooseSchemaAst, NamedAst } from "./types";
 
 /**
  * finds variable declarations for mongoose schemas
+ * @param map
  */
 export function filterVarMap(map: Map<string, ts.VariableDeclaration>) {
   const schemaAsts: NamedAst[] = [];
@@ -18,6 +19,10 @@ export function filterVarMap(map: Map<string, ts.VariableDeclaration>) {
   return schemaAsts;
 }
 
+/**
+ * check if a given variable declaration is a mongoose schema node
+ * @param declaration - root node
+ */
 function isSchemaObjectNode(declaration: ts.VariableDeclaration) {
   for (const declarationChild of declaration.getChildren()) {
     // new
@@ -47,6 +52,7 @@ function isSchemaObjectNode(declaration: ts.VariableDeclaration) {
 
 /**
  * gets the mongoose schema's object literal expressions
+ * @param schemaAsts
  */
 export function mapToObject(schemaAsts: NamedAst[]) {
   return schemaAsts.map<MongooseSchemaAst>(({ name, node }) => {
@@ -61,6 +67,9 @@ export function mapToObject(schemaAsts: NamedAst[]) {
   });
 }
 
+/**
+ * find closest object literal
+ */
 function findObjectLiterals(declaration: ts.VariableDeclaration) {
   const objectLiteralExps: ts.ObjectLiteralExpression[] = [];
   for (const declarationChild of declaration.getChildren()) {

@@ -15,7 +15,8 @@ import { findUnusedName } from "./helpers";
 import { MField, ParsedField, ParsedOptions } from "./types";
 
 /**
- * create map of variable declaration to variable name
+ * create map of variable declaration to variable names for top level variable nodes
+ * @param sourceFile
  */
 export function createTopLevelVariableMap(sourceFile: ts.SourceFile) {
   const statements: ts.Node[] = [];
@@ -51,6 +52,10 @@ export function createTopLevelVariableMap(sourceFile: ts.SourceFile) {
   );
 }
 
+/**
+ * traverse an object literal expression and collect property nodes
+ * @param node - object literal expression node
+ */
 export function traverseObject(node: ts.ObjectLiteralExpression) {
   const map = new Map<string, MField>();
   node.forEachChild((child) => {
@@ -73,6 +78,12 @@ export function traverseObject(node: ts.ObjectLiteralExpression) {
   return map;
 }
 
+/**
+ * create an interface type declaration from a mongoose field node map
+ * @param name
+ * @param map
+ * @param options
+ */
 export function createInterface(
   name: string,
   map: Map<string, MField>,
@@ -104,6 +115,11 @@ export function createInterface(
   return [iface, additionals.flat()];
 }
 
+/**
+ * find the nearest object literal expression node
+ * @param node - root node
+ * @param checker
+ */
 export function findObjectLiteral(
   node: ts.Node,
   checker: ts.TypeChecker
@@ -121,6 +137,12 @@ export function findObjectLiteral(
   return null;
 }
 
+/**
+ * parse a mongoose node field
+ * @param name
+ * @param value
+ * @param options
+ */
 function parseField(
   name: MField["name"],
   value: MField["value"],
@@ -135,7 +157,7 @@ function parseField(
   }
   if (ts.isArrayLiteralExpression(value)) {
     return {
-      nodes: [processArrayLiteral(name, value, options), []],
+      nodes: processArrayLiteral(name, value, options),
       optional: true,
     };
   }
@@ -148,6 +170,10 @@ function parseField(
   };
 }
 
+/**
+ * process a property access node into a type node
+ * @param node
+ */
 function processPropertyAccess(node: ts.PropertyAccessExpression) {
   const last = node.getChildAt(node.getChildCount() - 1);
   if (ts.isIdentifier(last)) {
@@ -157,27 +183,46 @@ function processPropertyAccess(node: ts.PropertyAccessExpression) {
   }
 }
 
+/**
+ * process an array literal expression into a type node
+ * @param name
+ * @param node
+ * @param options
+ */
 function processArrayLiteral(
   name: ts.Identifier,
   node: ts.ArrayLiteralExpression,
-  option: ParsedOptions
-) {
-  // const additionals: ts.Node[] = [];
+  options: ParsedOptions
+): [ts.ArrayTypeNode, ts.Node[]] {
+  const additionals: ts.Node[] = [];
   const parsedId =
     node.forEachChild((child) => {
       if (ts.isIdentifier(child)) {
         return processIdentifer(child);
       } else if (ts.isObjectLiteralExpression(child)) {
-        // TODO: processObject
-        console.log("TODO");
+        const { nodes } = processObject(name, child, options);
+        additionals.push(...nodes.flat());
+        return nodes[0];
       } else if (ts.isPropertyAccessExpression(child)) {
         return processPropertyAccess(child);
+      } else if (ts.isArrayLiteralExpression(child)) {
+        const [typeNode, extraNodes] = processArrayLiteral(
+          name,
+          child,
+          options
+        );
+        additionals.push(...extraNodes);
+        return typeNode;
       }
     }) ?? genPrimitive(ts.SyntaxKind.AnyKeyword);
 
-  return ts.factory.createArrayTypeNode(parsedId);
+  return [ts.factory.createArrayTypeNode(parsedId), additionals];
 }
 
+/**
+ * process an identifier into a type node
+ * @param node
+ */
 function processIdentifer(node: ts.Identifier) {
   const text = node.text;
   const ConstructorMap = {
@@ -211,11 +256,18 @@ function processIdentifer(node: ts.Identifier) {
   }
 }
 
+/**
+ * process an object literal expression into a type node
+ * @param name
+ * @param root
+ * @options
+ */
 export function processObject(
   name: ts.Identifier,
   root: ts.ObjectLiteralExpression,
   options: ParsedOptions
 ): ParsedField {
+  // collect all the fields of the object
   const propMap: { [idText: string]: ts.Node } = {};
   root.forEachChild((node) => {
     if (ts.isPropertyAssignment(node)) {
@@ -231,6 +283,7 @@ export function processObject(
   let required = false;
   const additionals: ts.Node[] = [];
 
+  // find the type
   if (propMap.type) {
     const node = propMap.type;
     // process Map
@@ -244,7 +297,13 @@ export function processObject(
         if (ts.isIdentifier(mapValNode)) {
           mapValTypeNode = processIdentifer(mapValNode);
         } else if (ts.isArrayLiteralExpression(mapValNode)) {
-          mapValTypeNode = processArrayLiteral(name, mapValNode, options);
+          const [typeNode, extraNodes] = processArrayLiteral(
+            name,
+            mapValNode,
+            options
+          );
+          mapValTypeNode = typeNode;
+          additionals.push(...extraNodes);
         } else if (ts.isObjectLiteralExpression(mapValNode)) {
           const newNodes = genPropertyInterface(root, name, options);
           // add typeref to our current interface type
@@ -262,6 +321,7 @@ export function processObject(
     }
   }
 
+  // process enum
   if (propMap.enum) {
     const node = propMap.enum;
     // we know its an array literal expression of string literals or numeric literals
@@ -273,6 +333,7 @@ export function processObject(
       );
     }
 
+    // collect string or numeric literals
     const literalNodes: (ts.StringLiteral | ts.NumericLiteral)[] = [];
     node.forEachChild((literalNode) => {
       if (
@@ -303,6 +364,7 @@ export function processObject(
     type = genTypeRef(enumId.text, options.enumCase);
   }
 
+  // check if required
   if (propMap.required) {
     const node = propMap.required;
     if (node.kind === ts.SyntaxKind.TrueKeyword) {
@@ -310,6 +372,7 @@ export function processObject(
     }
   }
 
+  // if we got this far without a type, its probably a nested object
   if (!type) {
     // create a new interface
     const newNodes = genPropertyInterface(root, name, options);

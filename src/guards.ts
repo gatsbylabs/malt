@@ -1,6 +1,10 @@
 import ts from "typescript";
 import { MType, M_TYPES } from "./types";
 
+/**
+ * type guard to check if the string is a valid Mongoose type
+ * @param str
+ */
 export function isMType(str: string): str is MType {
   for (const type of M_TYPES) {
     if (str === type) return true;
@@ -8,6 +12,10 @@ export function isMType(str: string): str is MType {
   return false;
 }
 
+/**
+ * type guard to cehck if the node is a valid mongoose field
+ * @param node
+ */
 export function isValidMFieldNode(
   node: ts.Node
 ): node is

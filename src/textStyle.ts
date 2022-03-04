@@ -2,6 +2,9 @@ import { camelCase, pascalCase, snakeCase } from "change-case";
 import { upperCase } from "upper-case";
 import { TextStyle } from "./types";
 
+/**
+ * text style strategy factory
+ */
 export function convertTextStyleFn(style: TextStyle): (str: string) => string {
   switch (style) {
     case "camelCase":
