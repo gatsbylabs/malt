@@ -184,10 +184,7 @@ function parseField(
     return { nodes: [node, []], optional: true };
   }
   if (ts.isArrayLiteralExpression(value)) {
-    return {
-      nodes: processArrayLiteral(name, value, options),
-      optional: true,
-    };
+    return processArrayLiteral(name, value, options);
   }
   if (ts.isObjectLiteralExpression(value)) {
     return processObject(name, value, options);
@@ -224,8 +221,10 @@ function processArrayLiteral(
   name: ts.Identifier,
   node: ts.ArrayLiteralExpression,
   options: ParsedOptions
-): [ts.ArrayTypeNode, ts.Node[]] {
+): ParsedField {
   const additionals: ts.Node[] = [];
+  let optional = true;
+
   const parsedId =
     node.forEachChild((child) => {
       if (ts.isIdentifier(child)) {
@@ -233,23 +232,28 @@ function processArrayLiteral(
       } else if (ts.isObjectLiteralExpression(child)) {
         const {
           nodes: [typeNode, extraNodes],
+          optional: outputOptional,
         } = processObject(name, child, options);
+        optional = outputOptional;
         additionals.push(...extraNodes);
         return typeNode;
       } else if (ts.isPropertyAccessExpression(child)) {
         return processPropertyAccess(child, options);
       } else if (ts.isArrayLiteralExpression(child)) {
-        const [typeNode, extraNodes] = processArrayLiteral(
-          name,
-          child,
-          options
-        );
+        const {
+          nodes: [typeNode, extraNodes],
+          optional: outputOptional,
+        } = processArrayLiteral(name, child, options);
+        optional = outputOptional;
         additionals.push(...extraNodes);
         return typeNode;
       }
     }) ?? genPrimitive(ts.SyntaxKind.AnyKeyword);
 
-  return [ts.factory.createArrayTypeNode(parsedId), additionals];
+  return {
+    nodes: [ts.factory.createArrayTypeNode(parsedId), additionals],
+    optional,
+  };
 }
 
 /**
@@ -312,7 +316,7 @@ export function processObject(
   });
 
   let type: ts.TypeNode | undefined = undefined;
-  let required = false;
+  let optional = true;
   const additionals: ts.Node[] = [];
 
   // find the type
@@ -329,11 +333,11 @@ export function processObject(
         if (ts.isIdentifier(mapValNode)) {
           mapValTypeNode = processIdentifer(mapValNode, options);
         } else if (ts.isArrayLiteralExpression(mapValNode)) {
-          const [typeNode, extraNodes] = processArrayLiteral(
-            name,
-            mapValNode,
-            options
-          );
+          const {
+            nodes: [typeNode, extraNodes],
+            optional: outputOptional,
+          } = processArrayLiteral(name, mapValNode, options);
+          optional = !outputOptional;
           mapValTypeNode = typeNode;
           additionals.push(...extraNodes);
         } else if (ts.isObjectLiteralExpression(mapValNode)) {
@@ -348,9 +352,9 @@ export function processObject(
       // process it as if it were a new schema
       const {
         nodes: [typeNode, extraNodes],
-        optional,
+        optional: outputOptional,
       } = parseField(name, node, options);
-      required = !optional;
+      optional = outputOptional;
       type = typeNode;
       additionals.push(...extraNodes);
     }
@@ -403,7 +407,7 @@ export function processObject(
   if (propMap.required) {
     const node = propMap.required;
     if (node.kind === ts.SyntaxKind.TrueKeyword) {
-      required = true;
+      optional = false;
     }
   }
 
@@ -415,5 +419,5 @@ export function processObject(
     additionals.push(...newNodes.flat());
   }
 
-  return { nodes: [type, additionals], optional: !required };
+  return { nodes: [type, additionals], optional };
 }

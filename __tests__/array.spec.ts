@@ -92,7 +92,7 @@ interface S {
     }
   );
 
-  it.only.each(MATRIX)(
+  it.each(MATRIX)(
     "schema with nested object type array: [{ type: { name: $m } }]",
     ({ m, type }) => {
       const options = parseOptions({
