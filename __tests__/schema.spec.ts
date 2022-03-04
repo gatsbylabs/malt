@@ -17,7 +17,7 @@ describe("Integration testing", () => {
 
     const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name?: string | null | undefined;
 }
@@ -39,7 +39,7 @@ interface S {
 
     const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name?: string | null | undefined;
 }

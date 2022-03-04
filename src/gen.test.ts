@@ -71,7 +71,7 @@ describe("test type node generators", () => {
       ])
     );
 
-    const e = `enum Test {
+    const e = `export enum Test {
     Hi = "Hi",
     Me = "Me"
 }`;
@@ -128,7 +128,7 @@ describe("test type node generators", () => {
       )
     );
 
-    const e = `interface Test {
+    const e = `export interface Test {
     _id?: mongoose.Types.ObjectId | null | undefined;
     enums?: any[] | null | undefined;
     hi?: any | null | undefined;

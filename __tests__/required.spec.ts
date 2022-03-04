@@ -19,7 +19,7 @@ describe("required field", () => {
 
       const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name: ${type};
 }
@@ -45,7 +45,7 @@ interface S {
 
       const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name: ${type}[];
 }
@@ -72,11 +72,11 @@ interface S {
 
     const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name: Name;
 }
-interface Name {
+export interface Name {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name: string;
 }

@@ -15,11 +15,11 @@ describe("enums", () => {
 
     const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name?: Name | null | undefined;
 }
-enum Name {
+export enum Name {
     A = "A",
     B = "B"
 }
@@ -41,11 +41,11 @@ enum Name {
 
     const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name?: Name | null | undefined;
 }
-enum Name {
+export enum Name {
     100 = 100,
     200 = 200
 }
@@ -67,11 +67,11 @@ enum Name {
 
     const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name: Name;
 }
-enum Name {
+export enum Name {
     100 = 100,
     200 = 200
 }

@@ -15,7 +15,7 @@ describe("basic un-nested schema", () => {
 
     const e = `// eslint-disable 
 import mongoose from "mongoose";
-interface S {
+export interface S {
     _id?: mongoose.Types.ObjectId | null | undefined;
     name?: ${type} | null | undefined;
 }

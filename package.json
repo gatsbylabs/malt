@@ -25,6 +25,7 @@
     "jest": "^27.4.5",
     "lint-staged": ">=10",
     "mongoose": "^6.1.2",
+    "npm-run-all": "^4.1.5",
     "pinst": ">=2",
     "prettier": "^2.5.1"
   },
@@ -32,14 +33,14 @@
     "check": "tsc",
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
-    "prepublish": "tsc",
     "test": "jest",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "dev": "node build.cjs && node --enable-source-maps build-dev/bundle.js ./__mocks__/model.ts",
     "fmt": "prettier . --write",
     "postinstall": "husky install",
-    "prepublishOnly": "pinst --disable",
+    "prepublishOnly": "npm-run-all pinst:disable --parallel test lint --sequential build",
+    "pinst:disable": "pinst --disable",
     "postpublish": "pinst --enable"
   },
   "lint-staged": {
