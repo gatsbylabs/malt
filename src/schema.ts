@@ -1,6 +1,6 @@
-import { TsNodeError } from "error";
-import { MongooseSchemaAst, NamedAst } from "types";
 import ts from "typescript";
+import { TsNodeError } from "./error";
+import { MongooseSchemaAst, NamedAst } from "./types";
 
 /**
  * finds variable declarations for mongoose schemas

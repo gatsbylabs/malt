@@ -1,5 +1,6 @@
-import { NamedAst } from "types";
+// UNUSED
 import ts from "typescript";
+import { NamedAst } from "./types";
 
 /**
  * finds variable declarations for mongoose models

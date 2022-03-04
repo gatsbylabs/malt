@@ -40,3 +40,30 @@ export interface ParsedField {
   nodes: [ts.TypeNode, ts.Node[]];
   optional: boolean;
 }
+export type TextStyle =
+  | "camelCase"
+  | "default"
+  | "PascalCase"
+  | "SCREAMING_SNAKE_CASE";
+
+export interface RawOptions {
+  enumStyle: TextStyle;
+  interfaceStyle: TextStyle;
+}
+
+export interface ParsedOptions {
+  enumCase: TextConvert;
+  interfaceCase: TextConvert;
+  usedNames: Set<string>;
+}
+
+export type TextConvert = (str: string) => string;
+
+export interface MField {
+  name: ts.Identifier;
+  value:
+    | ts.Identifier
+    | ts.ObjectLiteralExpression
+    | ts.ArrayLiteralExpression
+    | ts.PropertyAccessExpression;
+}

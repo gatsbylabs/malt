@@ -7,7 +7,6 @@
     "module": "commonjs",
     "rootDir": "./src",
     "moduleResolution": "node",
-    "baseUrl": "./src",
     "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
     "declaration": true,
