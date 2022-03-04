@@ -5,6 +5,6 @@ esbuild.buildSync({
   bundle: true,
   platform: "node",
   target: ["node16"],
-  outfile: "dist/bundle.js",
-  sourcemap: true
+  outfile: "build-dev/bundle.js",
+  sourcemap: true,
 });
