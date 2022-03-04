@@ -1,3 +1,5 @@
+import ts from "typescript";
+
 import { processSourceFile } from "../src/index";
 import { getOptions } from "../src/options";
 import { genSourceFile, printArr } from "./helpers";
@@ -12,7 +14,9 @@ describe("Integration testing", () => {
       name: String,
     });`);
 
-    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+    const nodes = processSourceFile(sourceFile, options);
+    expect(nodes).toBeTruthy();
+    const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
     expect(typeof o).toBe("string");
 
     const e = `// eslint-disable 
@@ -34,7 +38,10 @@ export interface S {
     const sourceFile = genSourceFile(`const s = new Schema({
       name: String
     })`);
-    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+
+    const nodes = processSourceFile(sourceFile, options);
+    expect(nodes).toBeTruthy();
+    const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
     expect(typeof o).toBe("string");
 
     const e = `// eslint-disable 

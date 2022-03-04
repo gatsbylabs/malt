@@ -1,3 +1,5 @@
+import ts from "typescript";
+
 import { getOptions, processSourceFile } from "../src";
 import { MATRIX, genSourceFile, printArr } from "./helpers";
 
@@ -10,7 +12,10 @@ describe("basic un-nested schema", () => {
     const sourceFile = genSourceFile(`const s = new Schema({
       name: ${m}
     })`);
-    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+
+    const nodes = processSourceFile(sourceFile, options);
+    expect(nodes).toBeTruthy();
+    const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
     expect(typeof o).toBe("string");
 
     const e = `// eslint-disable 

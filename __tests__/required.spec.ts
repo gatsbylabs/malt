@@ -1,3 +1,5 @@
+import ts from "typescript";
+
 import { processSourceFile } from "../src/index";
 import { getOptions } from "../src/options";
 import { MATRIX, genSourceFile, printArr } from "./helpers";
@@ -14,7 +16,9 @@ describe("required field", () => {
       name: { type: ${m}, required: true },
     });`);
 
-      const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+      const nodes = processSourceFile(sourceFile, options);
+      expect(nodes).toBeTruthy();
+      const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
       expect(typeof o).toBe("string");
 
       const e = `// eslint-disable 
@@ -40,7 +44,9 @@ export interface S {
       name: [{ type: ${m}, required: true }],
     });`);
 
-      const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+      const nodes = processSourceFile(sourceFile, options);
+      expect(nodes).toBeTruthy();
+      const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
       expect(typeof o).toBe("string");
 
       const e = `// eslint-disable 
@@ -67,7 +73,9 @@ export interface S {
       },
     });`);
 
-    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+    const nodes = processSourceFile(sourceFile, options);
+    expect(nodes).toBeTruthy();
+    const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
     expect(typeof o).toBe("string");
 
     const e = `// eslint-disable 

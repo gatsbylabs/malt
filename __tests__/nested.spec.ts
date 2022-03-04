@@ -1,3 +1,5 @@
+import ts from "typescript";
+
 import { getOptions, processSourceFile } from "../src";
 import { genSourceFile, printArr } from "./helpers";
 
@@ -12,7 +14,10 @@ describe("nested schemas", () => {
         stuff: { type: String }
       }
     })`);
-    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+
+    const nodes = processSourceFile(sourceFile, options);
+    expect(nodes).toBeTruthy();
+    const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
     expect(typeof o).toBe("string");
 
     const e = `// eslint-disable 
@@ -43,7 +48,10 @@ export interface Name {
         }
       }
     })`);
-    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+
+    const nodes = processSourceFile(sourceFile, options);
+    expect(nodes).toBeTruthy();
+    const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
     expect(typeof o).toBe("string");
 
     const e = `// eslint-disable 
@@ -79,7 +87,9 @@ export interface Name0 {
     })
 `);
 
-    const o = printArr(processSourceFile(sourceFile, options), sourceFile);
+    const nodes = processSourceFile(sourceFile, options);
+    expect(nodes).toBeTruthy();
+    const o = printArr(nodes as ts.NodeArray<ts.Node>, sourceFile);
     expect(typeof o).toBe("string");
 
     const e = `// eslint-disable 
