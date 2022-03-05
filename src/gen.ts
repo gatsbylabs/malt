@@ -88,7 +88,7 @@ export function genMImport(disableEslint = false) {
 /**
  * generate an enum
  * @param name - name of enum
- * @param literaNodes - nodes to use for enum
+ * @param literalNodes - nodes to use for enum
  * @param textConvert - text style conversion strategy
  */
 export function genEnum(
@@ -99,8 +99,10 @@ export function genEnum(
   if (textConvert) name = textConvert(name);
 
   const literalFactory = literalNodes.map((node) => {
+    let nodeName = node.text;
+    if (textConvert) nodeName = textConvert(nodeName);
     return ts.factory.createEnumMember(
-      ts.factory.createIdentifier(node.text),
+      ts.factory.createIdentifier(nodeName),
       node
     );
   });
