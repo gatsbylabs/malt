@@ -45,7 +45,8 @@ cli.arguments("<files...>").action(async (files: string[]) => {
 
   await Promise.all(writePromises);
   errors.forEach((e) => {
-    console.log(e);
+    if (e instanceof Error) console.log(e.message);
+    else console.log(e);
   });
 });
 
@@ -99,7 +100,7 @@ function gen(
         sourceFile
       );
       throw new Error(
-        `${chalk.blue(location)} ${chalk.yellow(message)} ${nodeText}`
+        `${chalk.yellow(message)} ${chalk.blue(location)} ${nodeText}`
       );
     } else {
       throw e;
