@@ -20,7 +20,6 @@
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",
     "@types/jest": "^27.0.3",
     "@types/mkdirp": "^1.0.2",
-    "@types/node": "^16",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
     "@typescript-eslint/parser": "^5.7.0",
     "babel-jest": "^27.4.5",
@@ -41,7 +40,7 @@
     "test": "jest",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "dev": "node build.cjs && node --enable-source-maps build-dev/bundle.js ./__mocks__/model.ts",
+    "dev": "node build.cjs && node --enable-source-maps dist/bin.js",
     "fmt": "prettier . --write",
     "postinstall": "husky install",
     "prepublishOnly": "npm-run-all pinst:disable --parallel test lint --sequential build",
@@ -53,11 +52,12 @@
     "*.{js,ts,css,md}": "prettier --write"
   },
   "dependencies": {
+    "@types/node": "^16",
     "chalk": "^4",
     "change-case": "^4.1.2",
     "commander": "^9.0.0",
     "mkdirp": "^1.0.4",
-    "typescript": "^4.5.4",
+    "typescript": "^4.4",
     "upper-case": "^2.0.2"
   },
   "repository": {

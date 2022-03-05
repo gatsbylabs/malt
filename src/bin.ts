@@ -18,20 +18,36 @@ cli
 
 cli.arguments("<files...>").action(async (files: string[]) => {
   files = await getAllFiles(files);
+  const program = ts.createProgram(files, {});
+  const printer = ts.createPrinter();
+  const checker = program.getTypeChecker();
 
-  const out = gen(files);
+  // this could use an async option
+  const writePromises: Promise<void>[] = [];
+  const errors: unknown[] = [];
+  files.forEach((file) => {
+    try {
+      const out = gen(file, program, printer, checker);
+      if (out) {
+        const [fileName, output] = out;
+        const dir = getGenDir(fileName);
+        mkdirp.sync(dir);
+        const writeHandle = fs.promises.writeFile(
+          path.join(dir, path.basename(fileName)),
+          output
+        );
+        writePromises.push(writeHandle);
+      }
+    } catch (e) {
+      errors.push(e);
+    }
+  });
 
-  const dirs = Array.from(new Set(out.map((d) => getGenDir(d[0]))));
-  await Promise.all(dirs.map(async (dir) => mkdirp(dir)));
-
-  await Promise.all(
-    out.map(async ([fileName, output]) => {
-      await fs.promises.writeFile(
-        path.join(getGenDir(fileName), path.basename(fileName)),
-        output
-      );
-    })
-  );
+  await Promise.all(writePromises);
+  errors.forEach((e) => {
+    if (e instanceof Error) console.log(e.message);
+    else console.log(e);
+  });
 });
 
 cli.parse();
@@ -49,48 +65,53 @@ function getGenDir(filePath: string) {
  * @param fileNames
  * @returns [fileName, output]
  */
-function gen(fileNames: string[]): [string, string][] {
-  const tsProgram = ts.createProgram(fileNames, {});
-  const printer = ts.createPrinter();
-
+function gen(
+  fileName: string,
+  program: ts.Program,
+  printer: ts.Printer,
+  checker: ts.TypeChecker
+): [string, string] | undefined {
   const options = getOptions({
     enumStyle: "PascalCase",
     interfaceStyle: "PascalCase",
   });
 
-  return fileNames.reduce<[string, string][]>((outputs, fileName) => {
-    const sourceFile = tsProgram.getSourceFile(fileName);
-    if (!sourceFile) throw new Error(`Source file not found: ${fileName}`);
-    try {
-      const nodes = processSourceFile(sourceFile, options);
-      if (!nodes) return outputs;
+  const sourceFile = program.getSourceFile(fileName);
+  if (!sourceFile) throw new Error(`Source file not found: ${fileName}`);
+  try {
+    const nodes = processSourceFile(sourceFile, options);
+    if (!nodes) return;
 
-      const outFile = printer.printList(
-        ts.ListFormat.MultiLine,
-        nodes,
+    const outFile = printer.printList(
+      ts.ListFormat.MultiLine,
+      nodes,
+      sourceFile
+    );
+    if (outFile === undefined) {
+      console.error("Error encountered, exiting.");
+      process.exit(1);
+    }
+    return [fileName, outFile];
+  } catch (e) {
+    if (e instanceof TsNodeError) {
+      const { location, message, nodeText } = tsNodeErrorHandler(
+        e,
+        fileName,
         sourceFile
       );
-      if (outFile === undefined) {
-        console.error("Error encountered, exiting.");
-        process.exit(1);
-      }
-      outputs.push([fileName, outFile]);
-      return outputs;
-    } catch (e) {
-      if (e instanceof TsNodeError) {
-        const { location, message, nodeText } = tsNodeErrorHandler(
-          e,
-          sourceFile
-        );
-        console.log(chalk.blue(location), chalk.yellow(message), nodeText);
-        process.exit(1);
-      } else {
-        throw e;
-      }
+      throw new Error(
+        `${chalk.yellow(message)} ${chalk.blue(location)} ${nodeText}`
+      );
+    } else {
+      throw e;
     }
-  }, []);
+  }
 }
 
+/**
+ * recursively get all files going down directories
+ * @param files - list of files
+ */
 async function getAllFiles(files: string[]): Promise<string[]> {
   const all = await Promise.all(
     files.map(async (f) => {

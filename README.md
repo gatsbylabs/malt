@@ -115,8 +115,9 @@ export enum Enums {
 - [x] array schema types
 - [x] schema type options (reqired, enums)
 - [x] schema options (timestamp, id, etc.)
+- [ ] support variable traversal for nodes
+  - [ ] support aliased imports of schemas and types
 - [ ] support string union option for enums
 - [ ] discriminated unions
 - [ ] add comment with text of original schema field configuration
-- [ ] aliased imports of schemas and types
 - [ ] options on null, undefined, or optional generation
