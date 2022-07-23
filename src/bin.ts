@@ -18,16 +18,21 @@ cli
 
 cli.arguments("<files...>").action(async (files: string[]) => {
   files = await getAllFiles(files);
-  const program = ts.createProgram(files, {});
+  const program = ts.createProgram(files, {
+    target: ts.ScriptTarget.ESNext,
+    module: ts.ModuleKind.CommonJS,
+    allowJs: true,
+    checkJs: true,
+  });
   const printer = ts.createPrinter();
   const checker = program.getTypeChecker();
 
   // this could use an async option
   const writePromises: Promise<void>[] = [];
   const errors: unknown[] = [];
-  files.forEach((file) => {
+  for (const file of program.getSourceFiles()) {
     try {
-      const out = gen(file, program, printer, checker);
+      const out = gen(file, printer, checker);
       if (out) {
         const [fileName, output] = out;
         const dir = getGenDir(fileName);
@@ -41,7 +46,7 @@ cli.arguments("<files...>").action(async (files: string[]) => {
     } catch (e) {
       errors.push(e);
     }
-  });
+  }
 
   await Promise.all(writePromises);
   errors.forEach((e) => {
@@ -66,8 +71,7 @@ function getGenDir(filePath: string) {
  * @returns [fileName, output]
  */
 function gen(
-  fileName: string,
-  program: ts.Program,
+  sourceFile: ts.SourceFile,
   printer: ts.Printer,
   checker: ts.TypeChecker
 ): [string, string] | undefined {
@@ -75,9 +79,6 @@ function gen(
     enumStyle: "PascalCase",
     interfaceStyle: "PascalCase",
   });
-
-  const sourceFile = program.getSourceFile(fileName);
-  if (!sourceFile) throw new Error(`Source file not found: ${fileName}`);
   try {
     const nodes = processSourceFile(sourceFile, options);
     if (!nodes) return;
@@ -91,14 +92,10 @@ function gen(
       console.error("Error encountered, exiting.");
       process.exit(1);
     }
-    return [fileName, outFile];
+    return [sourceFile.fileName, outFile];
   } catch (e) {
     if (e instanceof TsNodeError) {
-      const { location, message, nodeText } = tsNodeErrorHandler(
-        e,
-        fileName,
-        sourceFile
-      );
+      const { location, message, nodeText } = tsNodeErrorHandler(e, sourceFile);
       throw new Error(
         `${chalk.yellow(message)} ${chalk.blue(location)} ${nodeText}`
       );

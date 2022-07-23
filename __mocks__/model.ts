@@ -34,6 +34,8 @@ const identifierSchema = new Schema<IdentifierSchema>({
 
 export const Identifier = model("Identifier", identifierSchema);
 
+const abEnum = ["A", "B"];
+
 const accessedSchema = new mongoose.Schema<AccessedSchema>({
   name: String,
   binary: Buffer,
@@ -62,7 +64,7 @@ const accessedSchema = new mongoose.Schema<AccessedSchema>({
     of: String,
   },
   required: { type: String, required: true },
-  enums: { type: String, enum: ["A", "B"] },
+  enums: { type: String, enum: abEnum },
 });
 
 export const Accessed = mongoose.model("Accessed", accessedSchema);

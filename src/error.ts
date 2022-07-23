@@ -19,7 +19,6 @@ interface FormattedErrorMsg {
 
 export function tsNodeErrorHandler(
   e: TsNodeError,
-  fileName: string,
   sourceFile: ts.SourceFile
 ): FormattedErrorMsg {
   try {
@@ -31,7 +30,7 @@ export function tsNodeErrorHandler(
     }
 
     return {
-      location: `[${fileName}: ${line + 1},${character + 1}]`,
+      location: `[${sourceFile.fileName}: ${line + 1},${character + 1}]`,
       message: e.message,
       nodeText: e.node.getFullText(sourceFile),
     };
