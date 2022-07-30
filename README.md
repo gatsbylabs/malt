@@ -121,3 +121,7 @@ export enum Enums {
 - [ ] discriminated unions
 - [ ] add comment with text of original schema field configuration
 - [ ] options on null, undefined, or optional generation
+
+---
+
+Created and maintained by [Enoch Chau](https://enochchau.com) and the engineers at [Gatsby Labs](https://gatsby.events).
